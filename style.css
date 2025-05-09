@@ -9,6 +9,10 @@
     background-color: #ffffff;
   }
 
+body {
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+}
+
 /* Hero Section Styles */
 .hero {
   padding: 4rem 2rem;
@@ -90,8 +94,11 @@
 }
 
 .sponsor-logos img {
-  height: 150px;
+  max-height: 60px;
+  max-width: 150px;
   margin-right: 1.5rem;
+  height: auto;
+  object-fit: contain;
 }
 
   .hero-latest {
@@ -181,6 +188,9 @@
 @media (max-width: 768px) {
   .hero-content {
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .latest-card {
     position: static;

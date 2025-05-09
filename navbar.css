@@ -122,4 +122,11 @@
   .nav-menu li {
     margin: 0.5rem 0; /* Vertical spacing between menu items */
   }
+
+  .nav-wrapper,
+  .nav-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }
