@@ -1,0 +1,125 @@
+/* ===================================
+   Navbar Styles
+   =================================== */
+
+/* Wrapper styles for navbar background and shadow */
+.nav-wrapper {
+  background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background from light cyan to white */
+  padding: 1rem 2rem; /* Padding around navbar content */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow below navbar */
+  position: relative; /* Position relative for stacking context */
+  z-index: 1000; /* High z-index to stay above other elements */
+}
+
+/* Container layout for navbar content */
+.nav-container {
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Space out child elements evenly */
+  align-items: center; /* Vertically center items */
+  max-width: 1200px; /* Max width for content */
+  margin: 0 auto; /* Center container horizontally */
+  padding: 0 2rem; /* Horizontal padding inside container */
+}
+
+/* Logo image styling */
+.nav-logo-img {
+  height: 40px; /* Fixed height for logo image */
+}
+
+/* Main menu list styles */
+.nav-menu {
+  list-style: none; /* Remove default list bullets */
+  display: flex; /* Display list items in a row */
+  gap: 1.5rem; /* Space between menu items */
+  align-items: center; /* Vertically align items */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+}
+
+/* List item wrapper */
+.nav-menu li {
+  position: relative; /* Position relative for dropdown positioning */
+}
+
+/* Link styles inside menu items */
+.nav-menu a {
+  text-decoration: none; /* Remove underline from links */
+  color: #333; /* Dark gray text color */
+  font-weight: 500; /* Medium font weight for readability */
+}
+
+/* Hamburger menu styles (hidden on desktop) */
+.menu-toggle {
+  display: none; /* Hide hamburger menu by default */
+  flex-direction: column; /* Stack hamburger bars vertically */
+  cursor: pointer; /* Pointer cursor on hover */
+  gap: 5px; /* Space between hamburger bars */
+}
+
+/* Hamburger bars */
+.menu-toggle div {
+  width: 25px; /* Width of each bar */
+  height: 3px; /* Height of each bar */
+  background-color: #333; /* Dark gray color for bars */
+  border-radius: 2px; /* Slightly rounded corners */
+}
+
+/* Dropdown menu container */
+.dropdown-content {
+  display: none; /* Hide dropdown by default */
+  position: absolute; /* Position dropdown absolutely */
+  top: 100%; /* Position below the parent menu item */
+  left: 0; /* Align dropdown to the left edge */
+  background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background */
+  border: 1px solid #eee; /* Light border around dropdown */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+  z-index: 10; /* Ensure dropdown appears above other elements */
+  min-width: 200px; /* Minimum width for dropdown */
+}
+
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-content {
+  display: block; /* Display dropdown when parent is hovered */
+}
+
+/* Dropdown menu link styling */
+.dropdown-content a {
+  display: block; /* Make links fill the dropdown width */
+  padding: 0.5rem 1rem; /* Padding inside each dropdown link */
+  color: #333; /* Dark gray text color */
+  text-decoration: none; /* Remove underline */
+}
+
+/* Hover effect on dropdown links */
+.dropdown-content a:hover {
+  background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background on hover */
+}
+
+/* ===================================
+   Responsive Styles for Mobile
+   =================================== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex; /* Show hamburger menu on small screens */
+  }
+
+  .nav-menu {
+    display: none; /* Hide menu by default on mobile */
+    flex-direction: column; /* Stack menu items vertically */
+    background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background for menu */
+    position: absolute; /* Position menu absolutely */
+    top: 100%; /* Place menu below navbar */
+    right: 2rem; /* Align menu 2rem from right edge */
+    width: 200px; /* Fixed width for menu */
+    border: 1px solid #ddd; /* Light border around menu */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Stronger shadow for menu */
+  }
+
+  .nav-menu.active {
+    display: flex; /* Show menu when active */
+  }
+
+  .nav-menu li {
+    margin: 0.5rem 0; /* Vertical spacing between menu items */
+  }
+}
