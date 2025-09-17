@@ -55,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (navbarPlaceholder) {
     // Determine the relative path to the root directory based on current URL path
     const path = window.location.pathname;
-    let pathToRoot = path.includes('/Team/') || path.includes('/updates/') ? '../' : './';
+    const depth = path.split('/').filter(Boolean).length - 1;
+    const pathToRoot = '../'.repeat(depth);
 
     // Fetch the navbar.html file from the appropriate path
     fetch(`${pathToRoot}navbar.html`)
