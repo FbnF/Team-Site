@@ -54,11 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const navbarPlaceholder = document.getElementById('navbar-placeholder'); // Find the placeholder element for the navbar
   if (navbarPlaceholder) {
     // Determine the relative path to the root directory based on current URL path
-    const path = window.location.pathname;
-    let pathToRoot = path.includes('/Team/') || path.includes('/updates/') ? '../' : './';
+    const pathToRoot = '';
 
     // Fetch the navbar.html file from the appropriate path
-    fetch(`${pathToRoot}navbar.html`)
+    fetch('navbar.html')
       .then(res => res.text()) // Parse the response as plain text (HTML)
       .then(html => {
         navbarPlaceholder.innerHTML = html; // Insert the navbar HTML into the placeholder element
