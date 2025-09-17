@@ -53,29 +53,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load the navbar HTML from an external file and insert it into the page
   const navbarPlaceholder = document.getElementById('navbar-placeholder'); // Find the placeholder element for the navbar
   if (navbarPlaceholder) {
-    // Determine the relative path to the root directory based on current URL path
-    const path = window.location.pathname;
-    const depth = path.split('/').filter(Boolean).length - 1;
-    const pathToRoot = '../'.repeat(depth);
+    // Compute a repo-aware root path that works on GitHub Pages project sites.
+    // Example URLs:
+    //   Local dev:              /updates/Blog_main.html
+    //   GitHub Pages project:   /TEAM-SITE/updates/Blog_main.html
+    // We want to always fetch "/<repo>/navbar.html" when a repo segment exists.
+    const pathname = window.location.pathname.replace(/\/index\.html$/, '');
+    const segments = pathname.split('/').filter(Boolean);
+    const repoRoot = segments.length ? `/${segments[0]}/` : '/';
+    const navbarUrl = `${repoRoot}navbar.html`;
 
-    // Fetch the navbar.html file from the appropriate path
-    fetch(`${pathToRoot}navbar.html`)
-      .then(res => res.text()) // Parse the response as plain text (HTML)
+    fetch(navbarUrl)
+      .then(res => res.text())
       .then(html => {
-        navbarPlaceholder.innerHTML = html; // Insert the navbar HTML into the placeholder element
+        navbarPlaceholder.innerHTML = html;
 
-        // After the navbar is inserted, add event listeners for interactive functionality
-
-        const navMenu = document.querySelector('.nav-menu'); // Select the navigation menu element
-        const toggleBtn = document.querySelector('.menu-toggle'); // Select the menu toggle button (for mobile)
+        const navMenu = document.querySelector('.nav-menu');
+        const toggleBtn = document.querySelector('.menu-toggle');
 
         if (toggleBtn && navMenu) {
-          // If both elements exist, add a click listener to toggle the menu visibility
           toggleBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('active'); // Toggle the 'active' class to show/hide the menu
+            navMenu.classList.toggle('active');
           });
         }
       })
-      .catch(err => console.error('Navbar load failed:', err)); // Log any errors during navbar fetch or insertion
+      .catch(err => console.error('Navbar load failed:', err));
   }
 });
