@@ -1,77 +1,52 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // --- Resolve site root from where script.js actually loaded ---
-  const scriptTag =
-    document.querySelector('script[src$="script.js"]') ||
-    Array.from(document.scripts).find(s => (s.src || '').endsWith('script.js'));
-  const scriptSrc = scriptTag ? scriptTag.src : window.location.href;
-  // Directory of script.js (always ends with /)
-  const siteRoot = new URL('.', scriptSrc).href;
 
-  // ============================
-  // Load Latest Updates (from root)
-  // ============================
-  fetch(new URL('updates.json', siteRoot))
-    .then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
-    .then(data => {
-      const latestList = document.querySelector('.latest-list');
-      if (!latestList) return; // Not all pages have the carousel
 
-      latestList.innerHTML = '';
+(function(){
+  async function injectNavbar(){
+    const placeholder = document.getElementById('navbar-placeholder');
+    if(!placeholder) return;
 
-      data
-        .slice()
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 3)
-        .forEach((item, index) => {
-          const card = document.createElement('a');
-          card.href = item.link || '#';
-          card.className = `latest-card rotate-${index + 1}`;
-          card.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
-            <div class="card-caption">${item.date} – ${item.title}</div>
-          `;
-          latestList.appendChild(card);
-        });
+    // Find this script's absolute URL so we can derive the site root reliably
+    const scripts = document.getElementsByTagName('script');
+    const thisScript = document.currentScript || Array.from(scripts).find(s => (s.src || '').includes('script.js'));
+    if(!thisScript || !thisScript.src){
+      console.error('script.js: could not determine script URL');
+      return;
+    }
+    const scriptUrl = new URL(thisScript.src);
 
-      // Rotate the cards every 3 seconds
-      setInterval(() => {
-        const list = document.querySelector('.latest-list');
-        const cards = list ? list.querySelectorAll('.latest-card') : [];
-        if (!list || cards.length < 2) return;
+    // navbar.html lives next to script.js (project root)
+    const navbarUrl = new URL('navbar.html', scriptUrl);
 
-        const firstCard = cards[0];
-        firstCard.classList.add('fade-out');
+    try {
+      const res = await fetch(navbarUrl.href, { cache: 'no-cache' });
+      if(!res.ok) throw new Error(`Failed to load navbar: ${res.status} ${res.statusText}`);
+      const html = await res.text();
+      placeholder.innerHTML = html;
 
-        setTimeout(() => {
-          list.appendChild(firstCard);
-          list.querySelectorAll('.latest-card').forEach((card, i) => {
-            card.className = `latest-card rotate-${i + 1}`;
-          });
-        }, 300); // Match fade-out duration
-      }, 3000);
-    })
-    .catch(err => console.warn('Failed to load updates:', err));
+      // Rewrite any relative links/images inside the injected navbar so they work from any subfolder
+      const baseDir = new URL('.', scriptUrl); // directory containing script.js
 
-  // ============================
-  // Load Navbar (from root)
-  // ============================
-  const navbarPlaceholder = document.getElementById('navbar-placeholder');
-  if (navbarPlaceholder) {
-    const navbarUrl = new URL('navbar.html', siteRoot);
+      placeholder.querySelectorAll('[href^="./"]').forEach(el => {
+        const rel = el.getAttribute('href').replace(/^\.\//, '');
+        const url = new URL(rel, baseDir);
+        el.setAttribute('href', url.pathname); // keeps repo path for GH Pages
+      });
 
-    fetch(navbarUrl)
-      .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
-      .then(html => {
-        navbarPlaceholder.innerHTML = html;
+      placeholder.querySelectorAll('[src^="./"]').forEach(el => {
+        const rel = el.getAttribute('src').replace(/^\.\//, '');
+        const url = new URL(rel, baseDir);
+        el.setAttribute('src', url.pathname);
+      });
 
-        const navMenu = document.querySelector('.nav-menu');
-        const toggleBtn = document.querySelector('.menu-toggle');
-        if (toggleBtn && navMenu) {
-          toggleBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-          });
-        }
-      })
-      .catch(err => console.error('Navbar load failed:', err, 'URL:', String(navbarUrl)));
+      // Mobile menu toggle exposed globally
+      window.toggleMenu = function(){
+        const menu = placeholder.querySelector('.nav-menu');
+        if(menu) menu.classList.toggle('open');
+      };
+    } catch (err){
+      console.error('Navbar injection error:', err);
+    }
   }
-});
+
+  document.addEventListener('DOMContentLoaded', injectNavbar);
+})();
