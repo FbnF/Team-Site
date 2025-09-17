@@ -15,7 +15,7 @@ body {
 
 /* Hero Section Styles */
 .hero {
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
   background-color: #f9f9f9;
 }
 
@@ -60,7 +60,7 @@ body {
 }
 
 .highlight {
-    background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background for menu */
+    background: linear-gradient(to right, #b7edef, #e8f7f9); /* Gradient background for menu changed*/
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
 }

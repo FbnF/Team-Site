@@ -1,20 +1,20 @@
 [
   {
-    "date": "Apr 2025",
-    "title": "Pre-Season Inventory Management",
-    "image": "Images/Blog_Images/PreSeason_Inventory_Management.jpg",
-    "link": "updates/Pre_Season_Inventory_Management.html"
+    "date": "June 2025",
+    "title": "Building Skills, Sparking Curiosity: A Summer of Onshape",
+    "image": "Images/Blog_Images/CAD_Workshop_2025/CAD_Workshop.jpg",
+    "link": "/updates/CAD_Workshop.html"
   },
   {
     "date": "Feb 2025",
     "title": "Engineering Day",
     "image": "Images/Blog_Images/Engineering_Day.jpg",
-    "link": "updates/Engineering_Day.html"
+    "link": "/updates/Engineering_Day.html"
   },
   {
     "date": "Feb 2025",
     "title": "Meet 4!",
     "image": "Images/Blog_Images/Meet_4.jpg",
-    "link": "updates/Meet_4.html"
+    "link": "/updates/Meet_4.html"
   }
 ]

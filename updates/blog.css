@@ -1,0 +1,24 @@
+
+.social-button {
+    width: 500px;
+    height: 250px;
+    margin-bottom: 30px;
+}
+
+#right{
+    margin-right:85px;
+    margin-left: 85px;
+}
+
+.social-button img {
+    border-radius: 10px;
+    float: right;
+}
+
+.social-button p{
+    line-height: 20px;
+}
+
+.social-button u:hover{
+    color: #00857d;
+}

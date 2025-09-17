@@ -10,6 +10,11 @@
 }
 
 /* Individual team member card */
+.team-member {
+  max-width: 250px;
+  margin: 0 auto;
+}
+
 .team-member img {
   width: 100%;
   aspect-ratio: 1;
