@@ -1,5 +1,3 @@
-
-
 // IIFE wrapper
 (function(){
 
@@ -43,13 +41,13 @@
       placeholder.querySelectorAll('[href^="./"]').forEach(el => {
         const rel = el.getAttribute('href').replace(/^\.\//, '');
         const url = new URL(rel, baseDir);
-        el.setAttribute('href', url.pathname); // keeps repo path for GH Pages
+        el.setAttribute('href', url.href);
       });
 
       placeholder.querySelectorAll('[src^="./"]').forEach(el => {
         const rel = el.getAttribute('src').replace(/^\.\//, '');
         const url = new URL(rel, baseDir);
-        el.setAttribute('src', url.pathname);
+        el.setAttribute('src', url.href);
       });
 
       // Mobile menu toggle exposed globally
