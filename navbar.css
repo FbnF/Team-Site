@@ -2,25 +2,22 @@
    Navbar Styles
    =================================== */
 
-/* Wrapper styles for navbar background and shadow */
 .nav-wrapper {
-  background: linear-gradient(to right, #00857d, #ffffff); /* Gradient background from cyan to white */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow below navbar */
-  position: relative; /* Position relative for stacking context */
-  z-index: 1000; /* High z-index to stay above other elements */
+  background: linear-gradient(to right, #00857d, #ffffff);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
 }
 
-/* Container layout for navbar content */
 .nav-container {
-  display: flex; /* Use flexbox for layout */
-  justify-content: space-between; /* Space out child elements evenly */
-  align-items: center; /* Vertically center items */
-  max-width: 1200px; /* Max width for content */
-  margin: 0 auto; /* Center container horizontally */
-  padding: 0 2rem; /* Horizontal padding inside container */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
-/* Logo image styling */
 .nav-logo-img {
   height: 100%;
   max-height: 60px;
@@ -28,132 +25,106 @@
   object-fit: contain;
 }
 
-/* Main menu list styles */
 .nav-menu {
-  list-style: none; /* Remove default list bullets */
-  display: flex; /* Display list items in a row */
-  gap: 1.5rem; /* Space between menu items */
-  align-items: center; /* Vertically align items */
-  margin: 0; /* Remove default margin */
-  padding: 0; /* Remove default padding */
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 0;
+  padding: 0;
 }
 
-/* List item wrapper */
-.nav-menu li {
-  position: relative; /* Position relative for dropdown positioning */
-}
+.nav-menu li { position: relative; }
 
-/* Link styles inside menu items */
 .nav-menu a {
-  text-decoration: none; /* Remove underline from links */
-  color: #333; /* Dark gray text color */
-  font-weight: 500; /* Medium font weight for readability */
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
 }
 
-/* Hamburger menu styles (hidden on desktop) */
+/* Hamburger (hidden on desktop) */
 .menu-toggle {
-  display: none; /* Hide hamburger menu by default */
-  flex-direction: column; /* Stack hamburger bars vertically */
-  cursor: pointer; /* Pointer cursor on hover */
-  gap: 5px; /* Space between hamburger bars */
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
 }
-
-/* Hamburger bars */
 .menu-toggle div {
-  width: 25px; /* Width of each bar */
-  height: 3px; /* Height of each bar */
-  background-color: #333; /* Dark gray color for bars */
-  border-radius: 2px; /* Slightly rounded corners */
+  width: 25px;
+  height: 3px;
+  background-color: #333;
+  border-radius: 2px;
 }
 
-/* Dropdown menu container */
+/* Dropdown */
 .dropdown-content {
-  display: none; /* Hide dropdown by default */
-  position: absolute; /* Position dropdown absolutely */
-  top: 100%; /* Position below the parent menu item */
-  left: 0; /* Align dropdown to the left edge */
-  background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background */
-  border: 1px solid #eee; /* Light border around dropdown */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
-  z-index: 10; /* Ensure dropdown appears above other elements */
-  min-width: 200px; /* Minimum width for dropdown */
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: linear-gradient(to right, #e0f7fa, #ffffff);
+  border: 1px solid #eee;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  min-width: 200px;
 }
-
-/* Show dropdown on hover */
 .dropdown:hover .dropdown-content {
-  display: block; /* Display dropdown when parent is hovered */
+  display: block;
 }
-
-/* Dropdown menu link styling */
 .dropdown-content a {
-  display: block; /* Make links fill the dropdown width */
-  padding: 0.5rem 1rem; /* Padding inside each dropdown link */
-  color: #333; /* Dark gray text color */
-  text-decoration: none; /* Remove underline */
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #333;
+  text-decoration: none;
 }
-
-/* Hover effect on dropdown links */
 .dropdown-content a:hover {
-  background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background on hover */
+  background: linear-gradient(to right, #e0f7fa, #ffffff);
 }
 
 /* ===================================
-   Responsive Styles for Mobile
+   Responsive (Mobile)
    =================================== */
 @media (max-width: 768px) {
-  .menu-toggle {
-    display: flex; /* Show hamburger menu on small screens */
-  }
+  .menu-toggle { display: flex; }
 
   .nav-menu {
-    display: none; /* Hide menu by default on mobile */
-    flex-direction: column; /* Stack menu items vertically */
-    background: linear-gradient(to right, #e0f7fa, #ffffff); /* Gradient background for menu */
-    position: absolute; /* Position menu absolutely */
-    top: 100%; /* Place menu below navbar */
-    right: 2rem; /* Align menu 2rem from right edge */
-    width: 200px; /* Fixed width for menu */
-    border: 1px solid #ddd; /* Light border around menu */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Stronger shadow for menu */
+    display: none;                 /* Hidden by default on mobile */
+    flex-direction: column;
+    background: linear-gradient(to right, #e0f7fa, #ffffff);
+    position: absolute;
+    top: 100%;
+    right: 2rem;
+    width: 220px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 1001;
+    padding: 0.5rem 0;
   }
 
-  .nav-menu.active {
-    display: flex; /* Show menu when active */
-  }
+  /* Show when JS toggles either class */
+  .nav-menu.open,
+  .nav-menu.active { display: flex; }
 
-  .nav-menu li {
-    margin: 0.5rem 0; /* Vertical spacing between menu items */
-  }
+  .nav-menu li { margin: 0.2rem 0; }
 
-  .nav-wrapper,
-  .nav-container {
+  /* Mobile dropdown is click/tap driven; reposition as static list */
+  .dropdown-content {
+    position: static;
+    display: none;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    min-width: 0;
+    padding-left: 0;
+  }
+  .dropdown.open .dropdown-content { display: block; }
+
+  /* Optional: hide any fixed scroll nav on mobile */
+  .scroll-nav { display: none; }
+
+  .nav-wrapper, .nav-container {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-  }
-
-  .scroll-nav {
-    display: none;
-  }
-}
-
-
-
-
-@media (max-width: 768px) {
-  /*
-  .scroll-nav {
-    flex-wrap: wrap;
-    bottom: 0.5rem;
-    padding: 0.5rem;
-  }
-
-  .scroll-nav a {
-    flex: 1 1 100%;
-    text-align: center;
-  }
-  */
-  .scroll-nav {
-    display: none;
   }
 }

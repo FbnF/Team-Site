@@ -1,6 +1,7 @@
+// script.js (project root)
+
 // IIFE wrapper
 (function(){
-
   function getScriptUrl(){
     const scripts = document.getElementsByTagName('script');
     const thisScript = document.currentScript || Array.from(scripts).find(s => (s.src || '').includes('script.js'));
@@ -19,14 +20,12 @@
     const placeholder = document.getElementById('navbar-placeholder');
     if(!placeholder) return;
 
-    // Find this script's absolute URL so we can derive the site root reliably
     const scriptUrl = getScriptUrl();
     if(!scriptUrl){
       console.error('script.js: could not determine script URL');
       return;
     }
 
-    // navbar.html lives next to script.js (project root)
     const navbarUrl = new URL('navbar.html', scriptUrl);
 
     try {
@@ -35,42 +34,71 @@
       const html = await res.text();
       placeholder.innerHTML = html;
 
-      // Rewrite any relative links/images inside the injected navbar so they work from any subfolder
+      // Rewrite relative URLs inside injected navbar so it works in subfolders
       const baseDir = new URL('.', scriptUrl);
-
       placeholder.querySelectorAll('[href^="./"]').forEach(el => {
         const rel = el.getAttribute('href').replace(/^\.\//, '');
-        const url = new URL(rel, baseDir);
-        el.setAttribute('href', url.href);
+        el.setAttribute('href', new URL(rel, baseDir).href);
       });
-
       placeholder.querySelectorAll('[src^="./"]').forEach(el => {
         const rel = el.getAttribute('src').replace(/^\.\//, '');
-        const url = new URL(rel, baseDir);
-        el.setAttribute('src', url.href);
+        el.setAttribute('src', new URL(rel, baseDir).href);
       });
 
-      // Mobile menu toggle exposed globally
+      // Expose toggleMenu globally (inline onclick relies on this)
       window.toggleMenu = function(){
         const menu = placeholder.querySelector('.nav-menu');
-        if(menu) menu.classList.toggle('open');
+        const burger = placeholder.querySelector('.menu-toggle');
+        if (!menu) return;
+
+        const isOpen = menu.classList.toggle('open'); // CSS recognizes .open
+        if (burger) {
+          burger.setAttribute('aria-expanded', String(isOpen));
+          burger.setAttribute('aria-controls', menu.id || 'primary-menu');
+        }
+        if (!menu.id) menu.id = 'primary-menu';
       };
+
+      // Mobile dropdown tap support (in addition to desktop hover)
+      enableMobileDropdown(placeholder);
+
     } catch (err){
       console.error('Navbar injection error:', err);
     }
   }
 
+  function enableMobileDropdown(scope){
+    const mm = window.matchMedia('(max-width: 768px)');
+    const dropdowns = scope.querySelectorAll('.dropdown');
+
+    dropdowns.forEach(dropdown => {
+      const trigger = dropdown.querySelector(':scope > a');
+      if (!trigger) return;
+
+      // Prevent duplicate handlers when reinjecting
+      trigger._fbnfBound && trigger.removeEventListener('click', trigger._fbnfHandler);
+
+      const handler = (e) => {
+        if (mm.matches) {
+          e.preventDefault();
+          const expanded = dropdown.classList.toggle('open');
+          trigger.setAttribute('aria-expanded', String(expanded));
+        }
+      };
+      trigger.addEventListener('click', handler);
+      trigger._fbnfBound = true;
+      trigger._fbnfHandler = handler;
+    });
+  }
+
   async function loadCarousel(){
     const container = document.getElementById('updates');
-    if(!container) return; // Only on pages that have the carousel
-
+    if(!container) return;
     try{
       const feedUrl = resolveFromRoot('updates.json');
       const res = await fetch(feedUrl, { cache: 'no-cache' });
       if(!res.ok) throw new Error(`Failed to load updates.json: ${res.status} ${res.statusText}`);
       const items = await res.json();
-
-      // Build cards
       const html = (items || []).map(item => {
         const link = resolveFromRoot(item.link);
         const img  = resolveFromRoot(item.image);
@@ -83,7 +111,6 @@
           </a>
         `;
       }).join('');
-
       container.innerHTML = html || '<div style="opacity:.7">No updates yet.</div>';
     } catch(err){
       console.error('Carousel load error:', err);
