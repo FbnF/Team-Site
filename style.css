@@ -100,6 +100,11 @@ body {
   height: auto;
   object-fit: contain;
 }
+.sponsor-featured{
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+}
 
   .hero-latest {
     flex: 1 1 300px;
