@@ -71,6 +71,20 @@
     return (description || "").replace("Qualification ", "Q");
   }
 
+  function shortEventName(eventName) {
+    const name = (eventName || "").toLowerCase();
+
+    if (name.includes("solomon division")) return "State";
+    if (name.includes("illinois championship")) return "State";
+    if (name.includes("peoria western league tournament")) return "PWLT";
+    if (name.includes("peoria meet 1")) return "Meet 1";
+    if (name.includes("peoria meet 2")) return "Meet 2";
+    if (name.includes("peoria meet 3")) return "Meet 3";
+    if (name.includes("peoria meet 4")) return "Meet 4";
+
+    return eventName.length > 12 ? eventName.slice(0, 12) : eventName;
+  }
+
   function average(values) {
     if (!values.length) return 0;
     return values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -119,9 +133,9 @@
   }
 
   function consistencyLabel(stdDev) {
-    if (stdDev <= 15) return `High (±${round(stdDev)})`;
-    if (stdDev <= 30) return `Medium (±${round(stdDev)})`;
-    return `Low (±${round(stdDev)})`;
+    if (stdDev <= 15) return `High (scores vary by ~${round(stdDev)} pts)`;
+    if (stdDev <= 30) return `Medium (scores vary by ~${round(stdDev)} pts)`;
+    return `Low (scores vary by ~${round(stdDev)} pts)`;
   }
 
   // --- 4. NAVBAR & CAROUSEL ---
@@ -320,7 +334,9 @@
         x: {
           ticks: {
             autoSkip: true,
-            maxTicksLimit: 8
+            maxTicksLimit: 8,
+            maxRotation: 35,
+            minRotation: 35
           }
         },
         y: {
@@ -530,9 +546,9 @@
 
             const matchRecord = {
               eventName: event.name,
-              eventShortName: event.name,
+              eventShortName: shortEventName(event.name),
               label: formatMatchLabel(m.description),
-              chartLabel: `${event.name} · ${formatMatchLabel(m.description)}`,
+              chartLabel: `${shortEventName(event.name)} ${formatMatchLabel(m.description)}`,
               partnerTeam,
               auto: auto ?? 0,
               foul: foul ?? 0,
@@ -556,7 +572,7 @@
         const eventAvgScore = average(qualificationMatches.map((m) => m.myScore));
         eventChartSummaries.push({
           name: event.name,
-          shortName: event.name.length > 26 ? `${event.name.slice(0, 26)}…` : event.name,
+          shortName: shortEventName(event.name),
           avgScore: eventAvgScore || 0
         });
 
@@ -620,15 +636,17 @@
 
       const summary = {
         avgScoreText: totalMatches ? `${round(avgScore, 1)}` : "N/A",
-        bestScoreText: bestScoreMatch ? `${bestScore} (${bestScoreMatch.label})` : "N/A",
+        bestScoreText: bestScoreMatch
+          ? `${bestScore} (${shortEventName(bestScoreMatch.eventName)} ${bestScoreMatch.label})`
+          : "N/A",
         avgAutoText: totalMatches ? `${round(avgAuto, 1)}` : "N/A",
         avgFoulText: totalMatches ? `${round(avgFoul, 1)}` : "N/A",
         winRateText: totalMatches ? formatPercent(winRate) : "N/A",
-        autoContributionText: totalMatches ? formatPercent(autoContribution) : "N/A",
-        closeRecordText: `${closeWins}-${closeLosses}`,
+        autoContributionText: totalMatches ? `${formatPercent(autoContribution)} of score` : "N/A",
+        closeRecordText: `${closeWins} wins, ${closeLosses} losses`,
         consistencyText: totalMatches ? consistencyLabel(consistency) : "N/A",
         bestPartnerText,
-        penaltyImpactText: `${foulSwingMatches} foul-swing loss${foulSwingMatches === 1 ? "" : "es"}`,
+        penaltyImpactText: `${foulSwingMatches} losses where fouls exceeded margin`,
         peoriaAvgText: peoriaScores.length ? `${round(average(peoriaScores), 1)}` : "N/A",
         stateAvgText: stateScores.length ? `${round(average(stateScores), 1)}` : "N/A"
       };
@@ -669,4 +687,3 @@
     fetchTelemetry();
   });
 })();
-    
