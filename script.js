@@ -334,9 +334,9 @@
         x: {
           ticks: {
             autoSkip: true,
-            maxTicksLimit: 8,
-            maxRotation: 35,
-            minRotation: 35
+            maxTicksLimit: 6,
+            maxRotation: 25,
+            minRotation: 25
           }
         },
         y: {
@@ -442,7 +442,7 @@
 
       const evData = await evRes.json();
       const events = (evData.events || []).sort(
-        (a, b) => new Date(b.dateStart) - new Date(a.dateStart)
+        (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
       );
 
       root.innerHTML = "";
@@ -582,7 +582,7 @@
             eventRank,
             aData.awards || [],
             qualificationMatches,
-            i === 0
+            i === events.length - 1
           )
         );
       }
