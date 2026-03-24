@@ -29,7 +29,7 @@
           proudly competing as <span class="highlight">Team</span> <span class="highlight"> #21592</span>
         </h1>
         <p class="hero-subtext">
-          We design, build, and code competitive FTC robots — and we have a lot of fun doing it. Follow our journey through the challenges, breakthroughs, and victories that make up our season.
+          We design, build, and code competitive FTC robots — and we have a lot of fun doing it.
         </p>
 
         <div id="live-status-bar" class="live-status-container">
@@ -45,8 +45,8 @@
 
         <div class="hero-cta">
           <a href="updates/Blog_main.html" class="main-button">Explore Our Season</a>
-          <div class="note">See what we’ve been up to!</div>
         </div>
+
         <div class="sponsor-logos" id="sponsors">
           <img src="Images/Sponser_Logos/Caterpillar-Logo.png" alt="Caterpillar Logo">
           <img src="Images/Sponser_Logos/PIP-Logo.png" alt="PIP Logo">
@@ -56,8 +56,7 @@
 
       <div class="hero-latest">
         <div class="latest-heading">Latest Updates</div>
-        <div id="updates" class="latest-list">
-            </div>
+        <div id="updates" class="latest-list"></div>
       </div>
     </div>
   </section>
@@ -65,119 +64,11 @@
   <section id="telemetry" class="telemetry-section">
     <h2 class="telemetry-heading">> SEASON_LOG_ANALYTICS</h2>
     <div id="season-root">
-      <div id="loading-msg" style="text-align: center; padding: 50px; color: #888; font-family: monospace;">
-        [ SYNCING WITH FIRST_RELAY... ]
+      <div style="text-align: center; padding: 50px; color: #888; font-family: monospace;">
+        [ SYNCING_WITH_FIRST_RELAY... ]
       </div>
     </div>
   </section>
-
-    <script>
-    // --- OFFICIAL DIRECT ENGINE ---
-    const FTC_USER = "Kimng";
-    const FTC_KEY = "9B427DDE-72D8-46FA-95DB-4AF53CF939E6";
-    const TEAM_ID = "21592";
-    const SEASON_ID = "2025";
-    const AUTH_B64 = btoa(`${FTC_USER}:${FTC_KEY}`);
-    
-    // We'll try hitting the official events server directly first
-    // Firefox is more likely to allow this if we don't use a proxy wrapper
-    const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
-
-    async function syncTelemetry() {
-        const root = document.getElementById('season-root');
-        
-        try {
-            // 1. Fetch Events
-            const evRes = await fetch(`${BASE_URL}/${SEASON_ID}/events?teamNumber=${TEAM_ID}`, { 
-                method: 'GET',
-                mode: 'cors', // Explicitly ask for CORS mode
-                headers: { 
-                    'Authorization': `Basic ${AUTH_B64}`,
-                    'Accept': 'application/json'
-                } 
-            });
-
-            if (!evRes.ok) throw new Error("API_REJECTED_ACCESS");
-
-            const evData = await evRes.json();
-            const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
-
-            // 2. Update Top Bar
-            const rRes = await fetch(`${BASE_URL}/${SEASON_ID}/rankings/${events[0].code}?teamNumber=${TEAM_ID}`, { 
-                headers: { 'Authorization': `Basic ${AUTH_B64}`, 'Accept': 'application/json' } 
-            });
-            const rData = await rRes.json();
-            if(rData.rankings?.[0]) {
-                document.getElementById('live-rank').innerText = `#${rData.rankings[0].rank}`;
-                document.getElementById('live-record').innerText = `${rData.rankings[0].wins}-${rData.rankings[0].losses}-${rData.rankings[0].ties}`;
-            }
-
-            root.innerHTML = ""; 
-
-            // 3. Loop through events
-            for (const event of events) {
-                const eventBlock = document.createElement('div');
-                eventBlock.className = "event-block";
-                
-                const [mRes, aRes] = await Promise.all([
-                    fetch(`${BASE_URL}/${SEASON_ID}/matches/${event.code}?teamNumber=${TEAM_ID}`, { headers: { 'Authorization': `Basic ${AUTH_B64}` } }),
-                    fetch(`${BASE_URL}/${SEASON_ID}/awards/${event.code}/${TEAM_ID}`, { headers: { 'Authorization': `Basic ${AUTH_B64}` } })
-                ]);
-
-                const mData = await mRes.json();
-                const aData = await aRes.json();
-
-                let html = `
-                <div class="event-header">
-                    <div class="event-info">
-                        <h3>${event.name}</h3>
-                        <span class="event-date">${new Date(event.dateStart).toLocaleDateString()} | ${event.venue}</span>
-                    </div>
-                </div>`;
-
-                if (aData.awards?.length > 0) {
-                    html += `<div class="awards-ribbon">` + aData.awards.map(a => `<span class="award-tag">🏆 ${a.name}</span>`).join('') + `</div>`;
-                }
-
-                if (mData.matches?.length > 0) {
-                    html += `<table class="match-table"><thead><tr><th>Match</th><th>Result</th><th>Partner</th><th>Auto</th><th>Total</th></tr></thead><tbody>`;
-                    mData.matches.forEach(m => {
-                        if (m.scoreRedFinal === null) return;
-                        const isRed = m.teams.find(t => t.teamNumber == TEAM_ID).station.includes('Red');
-                        const partner = m.teams.find(t => t.teamNumber != TEAM_ID && t.station.includes(isRed ? 'Red' : 'Blue'));
-                        const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
-                        const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
-                        const auto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
-                        const win = myS > oppS;
-                        
-                        html += `
-                        <tr class="${win ? 'win-row' : 'loss-row'}">
-                            <td>${m.description.replace('Qualification ','Q')}</td>
-                            <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
-                            <td>#${partner.teamNumber}</td>
-                            <td class="auto-pts">${auto}</td>
-                            <td class="total-pts">${myS}</td>
-                        </tr>`;
-                    });
-                    html += `</tbody></table>`;
-                }
-                eventBlock.innerHTML = html;
-                root.appendChild(eventBlock);
-            }
-
-        } catch (e) {
-            console.error(e);
-            document.getElementById('loading-msg').innerHTML = `
-                <div style="color:#f85149; padding:20px; border:1px solid #f85149; background:rgba(248,81,73,0.1); border-radius:6px;">
-                    <strong>FIREFOX_SECURITY_BLOCK</strong><br>
-                    Please click the 🛡️ Shield icon in your address bar and turn off "Enhanced Tracking Protection" for this site. 
-                    Browsers block direct data requests from GitHub to FIRST for security.
-                </div>`;
-        }
-    }
-
-    window.addEventListener('load', syncTelemetry);
-    </script>
 </body>
-</html>
-
+</
+  html>
