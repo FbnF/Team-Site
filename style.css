@@ -62,13 +62,15 @@ img {
 /* --- LIVE STATUS PILLS --- */
 .live-status-container {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 20px 32px;
     margin-bottom: 2rem;
 }
 
 .status-item {
     display: flex;
     flex-direction: column;
+    min-width: 150px;
 }
 
 .status-label {
@@ -280,26 +282,106 @@ img {
     font-size: 0.9rem;
 }
 
-.win-row { border-left: 6px solid #28a745; }
-.loss-row { border-left: 6px solid #dc3545; }
+.win-row {
+    border-left: 6px solid #28a745;
+}
 
-.win-status { color: #28a745; font-weight: 700; }
-.loss-status { color: #dc3545; font-weight: 700; }
+.loss-row {
+    border-left: 6px solid #dc3545;
+}
 
-.auto-pts { color: #007bff; font-weight: 700; }
-.total-pts { font-weight: 900; }
+.tie-row {
+    border-left: 6px solid #f59e0b;
+}
+
+.win-status {
+    color: #28a745;
+    font-weight: 700;
+}
+
+.loss-status {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.tie-status {
+    color: #f59e0b;
+    font-weight: 700;
+}
+
+.auto-pts {
+    color: #007bff;
+    font-weight: 700;
+}
+
+.total-pts {
+    font-weight: 900;
+}
 
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
-    .hero { padding: 2rem 1rem; }
-    .hero-heading { font-size: 1.8rem; }
-    .hero-content { flex-direction: column; gap: 2rem; }
-    .hero-intro { flex-basis: auto; }
-    .hero-latest { flex-basis: auto; }
-    .latest-list { height: auto; }
-    .latest-card { position: relative; margin-bottom: 1rem; transform: none !important; opacity: 1 !important; }
-    .sponsor-logos img { height: 30px; }
-    .event-header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
-    .match-table th:nth-child(3), .match-table td:nth-child(3) { display: none; }
-    .match-table td, .match-table th { padding: 10px 8px; font-size: 0.8rem; }
+    .hero {
+        padding: 2rem 1rem;
+    }
+
+    .hero-heading {
+        font-size: 1.8rem;
+    }
+
+    .hero-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .hero-intro {
+        flex-basis: auto;
+    }
+
+    .hero-latest {
+        flex-basis: auto;
+    }
+
+    .latest-list {
+        height: auto;
+    }
+
+    .latest-card {
+        position: relative;
+        margin-bottom: 1rem;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+
+    .sponsor-logos img {
+        height: 30px;
+    }
+
+    .event-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .match-table th:nth-child(3),
+    .match-table td:nth-child(3) {
+        display: none;
+    }
+
+    .match-table td,
+    .match-table th {
+        padding: 10px 8px;
+        font-size: 0.8rem;
+    }
+
+    .live-status-container {
+        gap: 16px 20px;
+    }
+
+    .status-item {
+        min-width: 130px;
+    }
+
+    .status-value {
+        font-size: 1.25rem;
+    }
 }
