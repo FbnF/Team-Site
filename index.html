@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FbnF Robotics</title>
+  <title>FbnF Robotics | Team #21592</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="navbar.css">
   <script src="script.js" defer></script>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
-  
+
   <section id="hero" class="hero">
     <div class="hero-content">
       <div class="hero-intro">
@@ -24,12 +24,10 @@
             Follow us on Instagram
           </a>
         </div>
-        
         <h1 class="hero-heading">
           Hi! We’re <span class="highlight">Fast but not Furious</span><br>
           proudly competing as <span class="highlight">Team</span> <span class="highlight"> #21592</span>
         </h1>
-        
         <p class="hero-subtext">
           We design, build, and code competitive FTC robots — and we have a lot of fun doing it. Follow our journey through the challenges, breakthroughs, and victories that make up our season.
         </p>
@@ -43,16 +41,12 @@
             <span class="status-label">W-L-T RECORD</span>
             <span id="live-record" class="status-value">--</span>
           </div>
-          <div id="next-match-pill" class="next-match-pill" style="display:none;">
-            NEXT: <span id="match-countdown">--</span>
-          </div>
         </div>
 
         <div class="hero-cta">
           <a href="updates/Blog_main.html" class="main-button">Explore Our Season</a>
           <div class="note">See what we’ve been up to!</div>
         </div>
-
         <div class="sponsor-logos" id="sponsors">
           <img src="Images/Sponser_Logos/Caterpillar-Logo.png" alt="Caterpillar Logo">
           <img src="Images/Sponser_Logos/PIP-Logo.png" alt="PIP Logo">
@@ -62,20 +56,8 @@
 
       <div class="hero-latest">
         <div class="latest-heading">Latest Updates</div>
-        <div class="latest-list" id="updates">
-          <a href="updates/update3.html" class="latest-card rotate-3">
-            <img src="Images/update3.jpg" alt="Update 3">
-            <div class="card-caption">June 2025 – CAD Workshop</div>
-          </a>
-          <a href="updates/update2.html" class="latest-card rotate-2">
-            <img src="Images/update2.jpg" alt="Update 2">
-            <div class="card-caption">Feb 16 2025 – Engineering Day</div>
-          </a>
-          <a href="updates/update1.html" class="latest-card rotate-1">
-            <img src="Images/update1.jpg" alt="Update 1">
-            <div class="card-caption">Feb 8 2025 – Meet 4!</div>
-          </a>
-        </div>
+        <div id="updates" class="latest-list">
+            </div>
       </div>
     </div>
   </section>
@@ -83,9 +65,100 @@
   <section id="telemetry" class="telemetry-section">
     <h2 class="telemetry-heading">> SEASON_LOG_ANALYTICS</h2>
     <div id="season-root">
-      <div class="loading-text" style="text-align: center; padding: 50px; color: #888;">INITIALIZING DATA STREAM...</div>
+      <div style="text-align: center; padding: 50px; color: #888; font-family: monospace;">
+        [ SYNCING WITH FIRST_RELAY... ]
+      </div>
     </div>
   </section>
+
+  <script>
+    // DATA ENGINE CONFIG
+    const FTC = {
+      u: "Kimng",
+      k: "9B427DDE-72D8-46FA-95DB-4AF53CF939E6",
+      t: "21592",
+      s: "2025"
+    };
+    const AUTH = btoa(`${FTC.u}:${FTC.k}`);
+
+    async function loadTelemetry() {
+        const root = document.getElementById('season-root');
+        try {
+            // 1. Get Event List
+            const evRes = await fetch(`https://ftc-api.firstinspires.org/v2.0/${FTC.s}/events?teamNumber=${FTC.t}`, { headers: { Authorization: `Basic ${AUTH}` } });
+            const evData = await evRes.json();
+            const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
+
+            // Populate Live Rank from most recent event
+            const rRes = await fetch(`https://ftc-api.firstinspires.org/v2.0/${FTC.s}/rankings/${events[0].code}?teamNumber=${FTC.t}`, { headers: { Authorization: `Basic ${AUTH}` } });
+            const rData = await rRes.json();
+            if(rData.rankings?.[0]) {
+                document.getElementById('live-rank').innerText = `#${rData.rankings[0].rank}`;
+                document.getElementById('live-record').innerText = `${rData.rankings[0].wins}-${rData.rankings[0].losses}-${rData.rankings[0].ties}`;
+            }
+
+            root.innerHTML = ""; // Clear loader
+
+            // 2. Process Events in Parallel for Speed
+            const eventBlocks = await Promise.all(events.map(async (event) => {
+                const isFuture = new Date(event.dateStart) > new Date();
+                
+                // Concurrent fetch for Matches and Awards
+                const [mRes, aRes] = await Promise.all([
+                    fetch(`https://ftc-api.firstinspires.org/v2.0/${FTC.s}/matches/${event.code}?teamNumber=${FTC.t}`, { headers: { Authorization: `Basic ${AUTH}` } }),
+                    fetch(`https://ftc-api.firstinspires.org/v2.0/${FTC.s}/awards/${event.code}/${FTC.t}`, { headers: { Authorization: `Basic ${AUTH}` } })
+                ]);
+
+                const mData = await mRes.json();
+                const aData = await aRes.json();
+
+                let html = `
+                <div class="event-block">
+                    <div class="event-header">
+                        <div class="event-info">
+                            <h3>${event.name}</h3>
+                            <span class="event-date">${new Date(event.dateStart).toLocaleDateString()} | ${event.venue}</span>
+                        </div>
+                    </div>`;
+
+                if (aData.awards?.length > 0) {
+                    html += `<div class="awards-ribbon">` + aData.awards.map(a => `<span class="award-tag">🏆 ${a.name}</span>`).join('') + `</div>`;
+                }
+
+                if (mData.matches?.length > 0) {
+                    html += `<table class="match-table"><thead><tr><th>Match</th><th>Result</th><th>Partner</th><th>Auto</th><th>Total</th></tr></thead><tbody>`;
+                    mData.matches.forEach(m => {
+                        if (m.scoreRedFinal === null) return;
+                        const isRed = m.teams.find(t => t.teamNumber == FTC.t).station.includes('Red');
+                        const partner = m.teams.find(t => t.teamNumber != FTC.t && t.station.includes(isRed ? 'Red' : 'Blue'));
+                        const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
+                        const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
+                        const win = myS > oppS;
+                        html += `
+                        <tr class="${win ? 'win-row' : 'loss-row'}">
+                            <td>${m.description.replace('Qualification ','Q')}</td>
+                            <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
+                            <td>#${partner.teamNumber}</td>
+                            <td class="auto-pts">${isRed ? m.scoreRedAuto : m.scoreBlueAuto}</td>
+                            <td class="total-pts">${myS}</td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table>`;
+                } else if (isFuture) {
+                    html += `<div style="padding:20px; color:#888;">EVENT_UPCOMING: Schedule not yet published.</div>`;
+                }
+                html += `</div>`;
+                return html;
+            }));
+
+            root.innerHTML = eventBlocks.join('');
+        } catch (e) {
+            root.innerHTML = `<div style="color:red; text-align:center;">STREAM_OFFLINE: Recheck API_LINK</div>`;
+        }
+    }
+
+    window.addEventListener('load', loadTelemetry);
+  </script>
 
 </body>
 </html>
