@@ -363,7 +363,9 @@ img {
     }
 
     .match-table th:nth-child(3),
-    .match-table td:nth-child(3) {
+    .match-table td:nth-child(3),
+    .match-table th:nth-child(5),
+    .match-table td:nth-child(5) {
         display: none;
     }
 
