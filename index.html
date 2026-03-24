@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FbnF Robotics | Team #21592</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="navbar.css">
-  <script src="script.js" defer></script>
-</head>
 <body>
   <div id="navbar-placeholder"></div>
 
@@ -17,19 +7,21 @@
         <div class="social-buttons">
           <a href="https://www.youtube.com/@FastButNotFuriousFTC21592" target="_blank" class="social-button">
             <img src="Images/Icons/youtube-icon.png" alt="YouTube" style="height: 24px; vertical-align: middle; margin-right: 6px;">
-            Watch our journey YouTube
+            Watch our journey
           </a>
           <a href="#" target="_blank" class="social-button">
             <img src="Images/Icons/instagram-icon.png" alt="Instagram" style="height: 24px; vertical-align: middle; margin-right: 6px;">
-            Follow us on Instagram
+            Follow us
           </a>
         </div>
+
         <h1 class="hero-heading">
           Hi! We’re <span class="highlight">Fast but not Furious</span><br>
           proudly competing as <span class="highlight">Team</span> <span class="highlight"> #21592</span>
         </h1>
+        
         <p class="hero-subtext">
-          We design, build, and code competitive FTC robots — and we have a lot of fun doing it. Follow our journey through the challenges, breakthroughs, and victories that make up our season.
+          We design, build, and code competitive FTC robots — and we have a lot of fun doing it.
         </p>
 
         <div id="live-status-bar" class="live-status-container">
@@ -45,13 +37,12 @@
 
         <div class="hero-cta">
           <a href="updates/Blog_main.html" class="main-button">Explore Our Season</a>
-          <div class="note">See what we’ve been up to!</div>
         </div>
 
-        <div class="sponsor-logos" id="sponsors">
-          <img src="Images/Sponser_Logos/Caterpillar-Logo.png" alt="Caterpillar Logo">
-          <img src="Images/Sponser_Logos/PIP-Logo.png" alt="PIP Logo">
-          <img src="Images/Sponser_Logos/Kumon-Logo.png" alt="Kumon Logo">
+        <div class="sponsor-logos">
+          <img src="Images/Sponser_Logos/Caterpillar-Logo.png" alt="Caterpillar">
+          <img src="Images/Sponser_Logos/PIP-Logo.png" alt="PIP">
+          <img src="Images/Sponser_Logos/Kumon-Logo.png" alt="Kumon">
         </div>
       </div>
 
@@ -71,109 +62,5 @@
       </div>
     </div>
   </section>
-
-  <script>
-    // --- TELEMETRY DATA ENGINE (RE-ADDED) ---
-    const CONFIG = {
-      u: "Kimng",
-      k: "9B427DDE-72D8-46FA-95DB-4AF53CF939E6",
-      t: "21592",
-      s: "2025"
-    };
-
-    const AUTH = btoa(`${CONFIG.u}:${CONFIG.k}`);
-    // This proxy is specifically better for Firefox/Mobile on GitHub
-    const PROXY = "https://api.allorigins.win/raw?url=";
-    const API = "https://ftc-api.firstinspires.org/v2.0";
-
-    async function syncSeasonData() {
-      const root = document.getElementById('season-root');
-      try {
-        // 1. Fetch Events
-        const evUrl = encodeURIComponent(`${API}/${CONFIG.s}/events?teamNumber=${CONFIG.t}`);
-        const evRes = await fetch(PROXY + evUrl, { headers: { Authorization: `Basic ${AUTH}` } });
-        const evData = await evRes.json();
-        
-        // Filter out events and sort
-        const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
-
-        // 2. Fetch Live Rank for Header
-        const rUrl = encodeURIComponent(`${API}/${CONFIG.s}/rankings/${events[0].code}?teamNumber=${CONFIG.t}`);
-        fetch(PROXY + rUrl, { headers: { Authorization: `Basic ${AUTH}` } })
-          .then(res => res.json())
-          .then(data => {
-            if (data.rankings?.[0]) {
-              document.getElementById('live-rank').innerText = `#${data.rankings[0].rank}`;
-              document.getElementById('live-record').innerText = `${data.rankings[0].wins}-${data.rankings[0].losses}-${data.rankings[0].ties}`;
-            }
-          });
-
-        root.innerHTML = ""; 
-
-        // 3. Process Events
-        for (const event of events) {
-          const date = new Date(event.dateStart);
-          const isFuture = date > new Date();
-          
-          const mUrl = encodeURIComponent(`${API}/${CONFIG.s}/matches/${event.code}?teamNumber=${CONFIG.t}`);
-          const aUrl = encodeURIComponent(`${API}/${CONFIG.s}/awards/${event.code}/${CONFIG.t}`);
-
-          const [mRes, aRes] = await Promise.all([
-            fetch(PROXY + mUrl, { headers: { Authorization: `Basic ${AUTH}` } }),
-            fetch(PROXY + aUrl, { headers: { Authorization: `Basic ${AUTH}` } })
-          ]);
-
-          const mData = await mRes.json();
-          const aData = await aRes.json();
-
-          const block = document.createElement('div');
-          block.className = "event-block";
-          
-          let html = `
-            <div class="event-header">
-              <div class="event-info">
-                <h3>${event.name}</h3>
-                <span class="event-date">${date.toLocaleDateString()} | ${event.venue}</span>
-              </div>
-            </div>`;
-
-          if (aData.awards?.length > 0) {
-            html += `<div class="awards-ribbon">` + aData.awards.map(a => `<span class="award-tag">🏆 ${a.name}</span>`).join('') + `</div>`;
-          }
-
-          if (mData.matches?.length > 0) {
-            html += `<table class="match-table"><thead><tr><th>Match</th><th>Result</th><th>Partner</th><th>Auto</th><th>Tele+End</th><th>Total</th></tr></thead><tbody>`;
-            mData.matches.forEach(m => {
-              if (m.scoreRedFinal === null) return;
-              const isRed = m.teams.find(t => t.teamNumber == CONFIG.t).station.includes('Red');
-              const partner = m.teams.find(t => t.teamNumber != CONFIG.t && t.station.includes(isRed ? 'Red' : 'Blue'));
-              const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
-              const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
-              const auto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
-              const win = myS > oppS;
-              html += `
-                <tr class="${win ? 'win-row' : 'loss-row'}">
-                  <td>${m.description.replace('Qualification ', 'Q')}</td>
-                  <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
-                  <td>#${partner.teamNumber}</td>
-                  <td class="auto-pts">${auto}</td>
-                  <td>${myS - auto}</td>
-                  <td class="total-pts">${myS}</td>
-                </tr>`;
-            });
-            html += `</tbody></table>`;
-          }
-          block.innerHTML = html;
-          root.appendChild(block);
-        }
-      } catch (e) {
-        console.error("Telemetry Error:", e);
-        document.getElementById('sync-msg').innerText = "[ DATA_RELAY_OFFLINE ]";
-      }
-    }
-
-    window.addEventListener('load', syncSeasonData);
-  </script
-    >
-</body>
-</html>
+<
+  /body>
