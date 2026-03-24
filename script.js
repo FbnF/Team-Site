@@ -64,6 +64,26 @@
     return (description || "").replace("Qualification ", "Q");
   }
 
+  function addDebugBox(root, text) {
+    const existing = document.getElementById("api-debug-box");
+    if (existing) existing.remove();
+
+    const box = document.createElement("pre");
+    box.id = "api-debug-box";
+    box.style.whiteSpace = "pre-wrap";
+    box.style.wordBreak = "break-word";
+    box.style.background = "#f6f6f6";
+    box.style.border = "1px solid #ddd";
+    box.style.borderRadius = "10px";
+    box.style.padding = "12px";
+    box.style.marginBottom = "20px";
+    box.style.fontSize = "12px";
+    box.style.lineHeight = "1.4";
+    box.textContent = text;
+
+    root.prepend(box);
+  }
+
   // --- 4. NAVBAR & CAROUSEL ---
   async function injectNavbar() {
     const placeholder = document.getElementById("navbar-placeholder");
@@ -148,6 +168,7 @@
 
     const peoriaStats = createStats();
     const stateStats = createStats();
+    let debugShown = false;
 
     try {
       const evRes = await proxiedFetch(
@@ -223,6 +244,18 @@
           if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return false;
           return isQualificationMatch(m);
         });
+
+        if (!debugShown && qualificationMatches.length > 0) {
+          const sample = qualificationMatches[0];
+          addDebugBox(
+            root,
+            "FIRST QUALIFICATION MATCH FIELDS:\n\n" +
+              Object.keys(sample).sort().join("\n") +
+              "\n\nSAMPLE MATCH:\n\n" +
+              JSON.stringify(sample, null, 2)
+          );
+          debugShown = true;
+        }
 
         if (qualificationMatches.length > 0) {
           html += `
