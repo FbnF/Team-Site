@@ -10,10 +10,10 @@
   const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
   const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
 
-  // --- 2. CORS PROXY HELPER ---
-  // allorigins does NOT forward your Authorization header to the FTC API.
-  // corsproxy.io forwards request headers, so Basic auth actually reaches FIRST.
-  // If corsproxy.io ever goes down, swap in another header-forwarding proxy.
+  // FTCScout API — free, no auth, no CORS proxy needed, has season-wide stats
+  const SCOUT_BASE = "https://api.ftcscout.org/rest/v1";
+
+  // --- 2. CORS PROXY (only needed for official FIRST API) ---
   function proxiedFetch(url) {
     const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
     return fetch(proxyUrl, {
@@ -78,13 +78,46 @@
     }, 3000);
   }
 
-  // --- 5. TELEMETRY ENGINE ---
+  // --- 5. LIVE SEASON STATS (via FTCScout — season-wide, no CORS proxy needed) ---
+  async function fetchSeasonStats() {
+    try {
+      // Quick stats gives OPR rank and percentile for the whole season
+      const qRes = await fetch(`${SCOUT_BASE}/teams/${FTC_CONFIG.team}/quick-stats?season=${FTC_CONFIG.season}`);
+      if (qRes.ok) {
+        const qData = await qRes.json();
+        // quick-stats has tot (total OPR) with rank and percentile
+        if (qData?.tot?.rank) {
+          document.getElementById('live-rank').innerText = `#${qData.tot.rank}`;
+        }
+      }
+    } catch (err) { console.warn('FTCScout quick-stats failed:', err); }
+
+    try {
+      // Events endpoint gives per-event stats including W-L-T
+      const eRes = await fetch(`${SCOUT_BASE}/teams/${FTC_CONFIG.team}/events?season=${FTC_CONFIG.season}`);
+      if (eRes.ok) {
+        const events = await eRes.json();
+        let wins = 0, losses = 0, ties = 0;
+        for (const ev of events) {
+          if (ev.stats) {
+            wins += ev.stats.wins || 0;
+            losses += ev.stats.losses || 0;
+            ties += ev.stats.ties || 0;
+          }
+        }
+        if (wins + losses + ties > 0) {
+          document.getElementById('live-record').innerText = `${wins}-${losses}-${ties}`;
+        }
+      }
+    } catch (err) { console.warn('FTCScout events failed:', err); }
+  }
+
+  // --- 6. TELEMETRY ENGINE (via official FIRST API for detailed match data) ---
   async function fetchTelemetry() {
     const root = document.getElementById('season-root');
     if (!root) return;
 
     try {
-      // Fetch events for this team
       const evRes = await proxiedFetch(
         `${BASE_URL}/${FTC_CONFIG.season}/events?teamNumber=${FTC_CONFIG.team}`
       );
@@ -92,18 +125,6 @@
       const evData = await evRes.json();
       const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
 
-      // Live Rank from most recent event
-      proxiedFetch(
-        `${BASE_URL}/${FTC_CONFIG.season}/rankings/${events[0].code}?teamNumber=${FTC_CONFIG.team}`
-      ).then(res => res.json()).then(data => {
-        if (data.rankings?.[0]) {
-          document.getElementById('live-rank').innerText = `#${data.rankings[0].rank}`;
-          document.getElementById('live-record').innerText =
-            `${data.rankings[0].wins}-${data.rankings[0].losses}-${data.rankings[0].ties}`;
-        }
-      }).catch(err => console.warn('Rank fetch failed:', err));
-
-      // Build event blocks
       root.innerHTML = "";
       for (const event of events) {
         const block = document.createElement('div');
@@ -149,10 +170,11 @@
     }
   }
 
-  // --- 6. INIT ---
+  // --- 7. INIT ---
   document.addEventListener('DOMContentLoaded', () => {
     injectNavbar();
     loadCarousel();
-    fetchTelemetry();
+    fetchSeasonStats();   // FTCScout for hero rank + W-L-T
+    fetchTelemetry();     // FIRST API for detailed match tables
   });
 })();
