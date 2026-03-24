@@ -71,68 +71,69 @@
     </div>
   </section>
 
-  <script>
-    // --- INTEGRATED DATA ENGINE ---
-    const FTC_CREDENTIALS = {
-      user: "Kimng",
-      key: "9B427DDE-72D8-46FA-95DB-4AF53CF939E6",
-      team: "21592",
-      season: "2025"
-    };
-
-    const AUTH_B64 = btoa(`${FTC_CREDENTIALS.user}:${FTC_CREDENTIALS.key}`);
-    const PROXY = "https://api.allorigins.win/raw?url=";
-    const API_BASE = "https://ftc-api.firstinspires.org/v2.0";
+    <script>
+    // --- OFFICIAL DIRECT ENGINE ---
+    const FTC_USER = "Kimng";
+    const FTC_KEY = "9B427DDE-72D8-46FA-95DB-4AF53CF939E6";
+    const TEAM_ID = "21592";
+    const SEASON_ID = "2025";
+    const AUTH_B64 = btoa(`${FTC_USER}:${FTC_KEY}`);
+    
+    // We'll try hitting the official events server directly first
+    // Firefox is more likely to allow this if we don't use a proxy wrapper
+    const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
 
     async function syncTelemetry() {
         const root = document.getElementById('season-root');
         
         try {
             // 1. Fetch Events
-            const evUrl = encodeURIComponent(`${API_BASE}/${FTC_CREDENTIALS.season}/events?teamNumber=${FTC_CREDENTIALS.team}`);
-            const evRes = await fetch(PROXY + evUrl, { headers: { Authorization: `Basic ${AUTH_B64}` } });
+            const evRes = await fetch(`${BASE_URL}/${SEASON_ID}/events?teamNumber=${TEAM_ID}`, { 
+                method: 'GET',
+                mode: 'cors', // Explicitly ask for CORS mode
+                headers: { 
+                    'Authorization': `Basic ${AUTH_B64}`,
+                    'Accept': 'application/json'
+                } 
+            });
+
+            if (!evRes.ok) throw new Error("API_REJECTED_ACCESS");
+
             const evData = await evRes.json();
             const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
 
-            // 2. Immediate fetch for Rank (Top Bar) using the most recent event
-            if (events.length > 0) {
-                const rUrl = encodeURIComponent(`${API_BASE}/${FTC_CREDENTIALS.season}/rankings/${events[0].code}?teamNumber=${FTC_CREDENTIALS.team}`);
-                fetch(PROXY + rUrl, { headers: { Authorization: `Basic ${AUTH_B64}` } })
-                    .then(res => res.json())
-                    .then(rData => {
-                        if(rData.rankings?.[0]) {
-                            document.getElementById('live-rank').innerText = `#${rData.rankings[0].rank}`;
-                            document.getElementById('live-record').innerText = `${rData.rankings[0].wins}-${rData.rankings[0].losses}-${rData.rankings[0].ties}`;
-                        }
-                    });
+            // 2. Update Top Bar
+            const rRes = await fetch(`${BASE_URL}/${SEASON_ID}/rankings/${events[0].code}?teamNumber=${TEAM_ID}`, { 
+                headers: { 'Authorization': `Basic ${AUTH_B64}`, 'Accept': 'application/json' } 
+            });
+            const rData = await rRes.json();
+            if(rData.rankings?.[0]) {
+                document.getElementById('live-rank').innerText = `#${rData.rankings[0].rank}`;
+                document.getElementById('live-record').innerText = `${rData.rankings[0].wins}-${rData.rankings[0].losses}-${rData.rankings[0].ties}`;
             }
 
-            root.innerHTML = ""; // Clear loader
+            root.innerHTML = ""; 
 
-            // 3. Populate All Events in Parallel
-            const eventBlockPromises = events.map(async (event) => {
-                const isFuture = new Date(event.dateStart) > new Date();
-                
-                // Fetch matches and awards concurrently
-                const mUrl = encodeURIComponent(`${API_BASE}/${FTC_CREDENTIALS.season}/matches/${event.code}?teamNumber=${FTC_CREDENTIALS.team}`);
-                const aUrl = encodeURIComponent(`${API_BASE}/${FTC_CREDENTIALS.season}/awards/${event.code}/${FTC_CREDENTIALS.team}`);
+            // 3. Loop through events
+            for (const event of events) {
+                const eventBlock = document.createElement('div');
+                eventBlock.className = "event-block";
                 
                 const [mRes, aRes] = await Promise.all([
-                    fetch(PROXY + mUrl, { headers: { Authorization: `Basic ${AUTH_B64}` } }),
-                    fetch(PROXY + aUrl, { headers: { Authorization: `Basic ${AUTH_B64}` } })
+                    fetch(`${BASE_URL}/${SEASON_ID}/matches/${event.code}?teamNumber=${TEAM_ID}`, { headers: { 'Authorization': `Basic ${AUTH_B64}` } }),
+                    fetch(`${BASE_URL}/${SEASON_ID}/awards/${event.code}/${TEAM_ID}`, { headers: { 'Authorization': `Basic ${AUTH_B64}` } })
                 ]);
 
                 const mData = await mRes.json();
                 const aData = await aRes.json();
 
                 let html = `
-                <div class="event-block">
-                    <div class="event-header">
-                        <div class="event-info">
-                            <h3>${event.name}</h3>
-                            <span class="event-date">${new Date(event.dateStart).toLocaleDateString()} | ${event.venue}</span>
-                        </div>
-                    </div>`;
+                <div class="event-header">
+                    <div class="event-info">
+                        <h3>${event.name}</h3>
+                        <span class="event-date">${new Date(event.dateStart).toLocaleDateString()} | ${event.venue}</span>
+                    </div>
+                </div>`;
 
                 if (aData.awards?.length > 0) {
                     html += `<div class="awards-ribbon">` + aData.awards.map(a => `<span class="award-tag">🏆 ${a.name}</span>`).join('') + `</div>`;
@@ -142,42 +143,41 @@
                     html += `<table class="match-table"><thead><tr><th>Match</th><th>Result</th><th>Partner</th><th>Auto</th><th>Total</th></tr></thead><tbody>`;
                     mData.matches.forEach(m => {
                         if (m.scoreRedFinal === null) return;
-                        const myTeam = m.teams.find(t => t.teamNumber == FTC_CREDENTIALS.team);
-                        const isRed = myTeam.station.includes('Red');
-                        const partner = m.teams.find(t => t.teamNumber != FTC_CREDENTIALS.team && t.station.includes(isRed ? 'Red' : 'Blue'));
-                        const myScore = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
-                        const oppScore = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
+                        const isRed = m.teams.find(t => t.teamNumber == TEAM_ID).station.includes('Red');
+                        const partner = m.teams.find(t => t.teamNumber != TEAM_ID && t.station.includes(isRed ? 'Red' : 'Blue'));
+                        const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
+                        const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
                         const auto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
-                        const win = myScore > oppScore;
+                        const win = myS > oppS;
                         
                         html += `
                         <tr class="${win ? 'win-row' : 'loss-row'}">
                             <td>${m.description.replace('Qualification ','Q')}</td>
-                            <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myScore}-${oppScore}</td>
+                            <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
                             <td>#${partner.teamNumber}</td>
                             <td class="auto-pts">${auto}</td>
-                            <td class="total-pts">${myScore}</td>
+                            <td class="total-pts">${myS}</td>
                         </tr>`;
                     });
                     html += `</tbody></table>`;
-                } else if (isFuture) {
-                    html += `<div style="padding:20px; color:#888; font-style: italic;">[ EVENT_UPCOMING ] Schedule not yet published.</div>`;
                 }
-                html += `</div>`;
-                return html;
-            });
-
-            const allResults = await Promise.all(eventBlockPromises);
-            root.innerHTML = allResults.join('');
+                eventBlock.innerHTML = html;
+                root.appendChild(eventBlock);
+            }
 
         } catch (e) {
             console.error(e);
-            document.getElementById('loading-msg').innerText = "[ CONNECTION_FAILED: BROWSER BLOCKED ACCESS ]";
+            document.getElementById('loading-msg').innerHTML = `
+                <div style="color:#f85149; padding:20px; border:1px solid #f85149; background:rgba(248,81,73,0.1); border-radius:6px;">
+                    <strong>FIREFOX_SECURITY_BLOCK</strong><br>
+                    Please click the 🛡️ Shield icon in your address bar and turn off "Enhanced Tracking Protection" for this site. 
+                    Browsers block direct data requests from GitHub to FIRST for security.
+                </div>`;
         }
     }
 
-    // Initialize Telemetry
     window.addEventListener('load', syncTelemetry);
-  </script>
+    </script>
 </body>
 </html>
+
