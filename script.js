@@ -33,6 +33,37 @@
     return new URL(relPath, new URL(".", scriptUrl)).href;
   }
 
+  function createStats() {
+    return {
+      wins: 0,
+      losses: 0,
+      ties: 0,
+      rank: null
+    };
+  }
+
+  function isStateEvent(eventName) {
+    const name = (eventName || "").toLowerCase();
+    return name.includes("illinois championship");
+  }
+
+  function isPeoriaEvent(eventName) {
+    const name = (eventName || "").toLowerCase();
+    return (
+      name.includes("peoria meet") ||
+      name.includes("peoria western league tournament")
+    );
+  }
+
+  function isQualificationMatch(match) {
+    const desc = (match.description || "").toLowerCase();
+    return desc.includes("qualification");
+  }
+
+  function formatMatchLabel(description) {
+    return (description || "").replace("Qualification ", "Q");
+  }
+
   // --- 4. NAVBAR & CAROUSEL ---
   async function injectNavbar() {
     const placeholder = document.getElementById("navbar-placeholder");
@@ -115,28 +146,6 @@
     const root = document.getElementById("season-root");
     if (!root) return;
 
-    function createStats() {
-      return {
-        wins: 0,
-        losses: 0,
-        ties: 0,
-        rank: null
-      };
-    }
-
-    function isStateEvent(eventName) {
-      const name = (eventName || "").toLowerCase();
-      return name.includes("illinois championship");
-    }
-
-    function isPeoriaEvent(eventName) {
-      const name = (eventName || "").toLowerCase();
-      return (
-        name.includes("peoria meet") ||
-        name.includes("peoria western league tournament")
-      );
-    }
-
     const peoriaStats = createStats();
     const stateStats = createStats();
 
@@ -186,7 +195,6 @@
         const eventIsState = isStateEvent(eventName);
         const eventIsPeoria = isPeoriaEvent(eventName);
 
-        // Keep the most recent rank found in each bucket
         if (eventIsState && eventRank !== null && stateStats.rank === null) {
           stateStats.rank = eventRank;
         }
@@ -211,7 +219,12 @@
             `</div>`;
         }
 
-        if (mData.matches?.length > 0) {
+        const qualificationMatches = (mData.matches || []).filter((m) => {
+          if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return false;
+          return isQualificationMatch(m);
+        });
+
+        if (qualificationMatches.length > 0) {
           html += `
             <table class="match-table">
               <thead>
@@ -226,9 +239,7 @@
               <tbody>
           `;
 
-          mData.matches.forEach((m) => {
-            if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return;
-
+          qualificationMatches.forEach((m) => {
             const myTeam = m.teams.find(
               (t) => String(t.teamNumber) == String(FTC_CONFIG.team)
             );
@@ -260,7 +271,7 @@
 
             html += `
               <tr class="${win ? "win-row" : tie ? "tie-row" : "loss-row"}">
-                <td>${(m.description || "").replace("Qualification ", "Q")}</td>
+                <td>${formatMatchLabel(m.description)}</td>
                 <td class="${win ? "win-status" : tie ? "tie-status" : "loss-status"}">
                   ${win ? "WIN" : tie ? "TIE" : "LOSS"} ${myS}-${oppS}
                 </td>
