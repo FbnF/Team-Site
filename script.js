@@ -9,6 +9,13 @@
 
   const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
   const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
+  const CLOSE_MATCH_MARGIN = 20;
+  const MIN_PARTNER_MATCHES = 2;
+
+  let scoreTrendChart = null;
+  let autoTrendChart = null;
+  let foulTrendChart = null;
+  let eventAvgChart = null;
 
   // --- 2. CORS PROXY ---
   function proxiedFetch(url) {
@@ -62,6 +69,59 @@
 
   function formatMatchLabel(description) {
     return (description || "").replace("Qualification ", "Q");
+  }
+
+  function average(values) {
+    if (!values.length) return 0;
+    return values.reduce((sum, v) => sum + v, 0) / values.length;
+  }
+
+  function round(value, digits = 0) {
+    const factor = Math.pow(10, digits);
+    return Math.round(value * factor) / factor;
+  }
+
+  function standardDeviation(values) {
+    if (!values.length) return 0;
+    const avg = average(values);
+    const variance =
+      values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / values.length;
+    return Math.sqrt(variance);
+  }
+
+  function formatPercent(value) {
+    return `${round(value, 1)}%`;
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function safeDate(dateString) {
+    const d = new Date(dateString);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatEventDate(dateString) {
+    const d = safeDate(dateString);
+    return d ? d.toLocaleDateString() : "Unknown date";
+  }
+
+  function destroyCharts() {
+    [scoreTrendChart, autoTrendChart, foulTrendChart, eventAvgChart].forEach((chart) => {
+      if (chart) chart.destroy();
+    });
+    scoreTrendChart = null;
+    autoTrendChart = null;
+    foulTrendChart = null;
+    eventAvgChart = null;
+  }
+
+  function consistencyLabel(stdDev) {
+    if (stdDev <= 15) return `High (±${round(stdDev)})`;
+    if (stdDev <= 30) return `Medium (±${round(stdDev)})`;
+    return `Low (±${round(stdDev)})`;
   }
 
   // --- 4. NAVBAR & CAROUSEL ---
@@ -141,13 +201,222 @@
     }, 3000);
   }
 
-  // --- 5. TELEMETRY ENGINE ---
+  // --- 5. RENDER HELPERS ---
+  function buildEventBlock(event, eventRank, awards, qualificationMatches, isOpen) {
+    const headerMeta = `${formatEventDate(event.dateStart)}${event.code ? ` · ${event.code}` : ""}`;
+    const rankPill = eventRank !== null
+      ? `<span class="event-rank-pill">Rank #${eventRank}</span>`
+      : "";
+
+    let contentHtml = "";
+
+    if (awards?.length > 0) {
+      contentHtml +=
+        `<div class="awards-ribbon">` +
+        awards.map((a) => `<span class="award-tag">🏆 ${a.name}</span>`).join("") +
+        `</div>`;
+    }
+
+    if (qualificationMatches.length > 0) {
+      contentHtml += `
+        <div class="match-table-wrap">
+          <table class="match-table">
+            <thead>
+              <tr>
+                <th>Match</th>
+                <th>Result</th>
+                <th>Partner</th>
+                <th>Auto</th>
+                <th>Foul</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      qualificationMatches.forEach((m) => {
+        const rowClass = m.win ? "win-row" : m.tie ? "tie-row" : "loss-row";
+        const statusClass = m.win ? "win-status" : m.tie ? "tie-status" : "loss-status";
+        const statusText = m.win ? "WIN" : m.tie ? "TIE" : "LOSS";
+
+        contentHtml += `
+          <tr class="${rowClass}">
+            <td>${m.label}</td>
+            <td class="${statusClass}">${statusText} ${m.myScore}-${m.oppScore}</td>
+            <td>#${m.partnerTeam || "??"}</td>
+            <td class="auto-pts">${m.auto}</td>
+            <td>${m.foul}</td>
+            <td class="total-pts">${m.myScore}</td>
+          </tr>
+        `;
+      });
+
+      contentHtml += `
+            </tbody>
+          </table>
+        </div>
+      `;
+    } else {
+      contentHtml += `<div class="empty-event-note">No qualification matches available for this event.</div>`;
+    }
+
+    return `
+      <div class="event-block">
+        <details class="event-details" ${isOpen ? "open" : ""}>
+          <summary class="event-summary">
+            <div class="event-summary-left">
+              <h3>${event.name}</h3>
+              <div class="event-summary-meta">${headerMeta}</div>
+            </div>
+            <div class="event-summary-right">
+              ${rankPill}
+              <span class="event-toggle-icon">⌄</span>
+            </div>
+          </summary>
+          <div class="event-content">
+            ${contentHtml}
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
+  function renderSummaryCards(summary) {
+    setText("avg-score", summary.avgScoreText);
+    setText("best-score", summary.bestScoreText);
+    setText("avg-auto", summary.avgAutoText);
+    setText("avg-foul", summary.avgFoulText);
+    setText("win-rate", summary.winRateText);
+    setText("auto-contribution", summary.autoContributionText);
+    setText("close-record", summary.closeRecordText);
+    setText("consistency", summary.consistencyText);
+    setText("best-partner", summary.bestPartnerText);
+    setText("penalty-impact", summary.penaltyImpactText);
+    setText("peoria-avg", summary.peoriaAvgText);
+    setText("state-avg", summary.stateAvgText);
+  }
+
+  function renderCharts(allMatches, eventSummaries) {
+    destroyCharts();
+
+    if (typeof Chart === "undefined") return;
+
+    const labels = allMatches.map((m) => m.chartLabel);
+    const scoreValues = allMatches.map((m) => m.myScore);
+    const autoValues = allMatches.map((m) => m.auto);
+    const foulValues = allMatches.map((m) => m.foul);
+
+    const eventLabels = eventSummaries.map((e) => e.shortName);
+    const eventAvgValues = eventSummaries.map((e) => round(e.avgScore, 1));
+
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: true,
+            maxTicksLimit: 8
+          }
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    };
+
+    const scoreCtx = document.getElementById("scoreTrendChart");
+    if (scoreCtx) {
+      scoreTrendChart = new Chart(scoreCtx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Total Score",
+              data: scoreValues,
+              tension: 0.25
+            }
+          ]
+        },
+        options: commonOptions
+      });
+    }
+
+    const autoCtx = document.getElementById("autoTrendChart");
+    if (autoCtx) {
+      autoTrendChart = new Chart(autoCtx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Auto Points",
+              data: autoValues,
+              tension: 0.25
+            }
+          ]
+        },
+        options: commonOptions
+      });
+    }
+
+    const foulCtx = document.getElementById("foulTrendChart");
+    if (foulCtx) {
+      foulTrendChart = new Chart(foulCtx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Foul Points",
+              data: foulValues,
+              tension: 0.25
+            }
+          ]
+        },
+        options: commonOptions
+      });
+    }
+
+    const eventAvgCtx = document.getElementById("eventAvgChart");
+    if (eventAvgCtx) {
+      eventAvgChart = new Chart(eventAvgCtx, {
+        type: "bar",
+        data: {
+          labels: eventLabels,
+          datasets: [
+            {
+              label: "Average Score",
+              data: eventAvgValues
+            }
+          ]
+        },
+        options: commonOptions
+      });
+    }
+  }
+
+  // --- 6. TELEMETRY ENGINE ---
   async function fetchTelemetry() {
     const root = document.getElementById("season-root");
     if (!root) return;
 
     const peoriaStats = createStats();
     const stateStats = createStats();
+
+    const allMatches = [];
+    const peoriaScores = [];
+    const stateScores = [];
+    const partnerMap = new Map();
+    let closeWins = 0;
+    let closeLosses = 0;
+    let foulSwingMatches = 0;
+    let bestScoreMatch = null;
 
     try {
       const evRes = await proxiedFetch(
@@ -162,20 +431,16 @@
 
       root.innerHTML = "";
 
-      for (const event of events) {
-        const block = document.createElement("div");
-        block.className = "event-block";
+      const renderedEvents = [];
+      const eventChartSummaries = [];
+
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i];
 
         const [mRes, aRes, rRes] = await Promise.all([
-          proxiedFetch(
-            `${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${FTC_CONFIG.team}`
-          ),
-          proxiedFetch(
-            `${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`
-          ),
-          proxiedFetch(
-            `${BASE_URL}/${FTC_CONFIG.season}/rankings/${event.code}?teamNumber=${FTC_CONFIG.team}`
-          )
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${FTC_CONFIG.team}`),
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`),
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/rankings/${event.code}?teamNumber=${FTC_CONFIG.team}`)
         ]);
 
         const mData = await mRes.json();
@@ -188,7 +453,7 @@
             eventRank = rData.rankings[0].rank;
           }
         } catch (err) {
-          // rankings may not exist for some events
+          // rankings may not exist
         }
 
         const eventName = event.name || "";
@@ -203,132 +468,205 @@
           peoriaStats.rank = eventRank;
         }
 
-        let headerRight = new Date(event.dateStart).toLocaleDateString();
-        if (eventRank !== null) {
-          headerRight = `Rank #${eventRank} · ${headerRight}`;
-        }
-
-        let html = `<div class="event-header"><h3>${event.name}</h3><span>${headerRight}</span></div>`;
-
-        if (aData.awards?.length > 0) {
-          html +=
-            `<div class="awards-ribbon">` +
-            aData.awards
-              .map((a) => `<span class="award-tag">🏆 ${a.name}</span>`)
-              .join("") +
-            `</div>`;
-        }
-
-        const qualificationMatches = (mData.matches || []).filter((m) => {
-          if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return false;
-          return isQualificationMatch(m);
-        });
-
-        if (qualificationMatches.length > 0) {
-          html += `
-            <table class="match-table">
-              <thead>
-                <tr>
-                  <th>Match</th>
-                  <th>Result</th>
-                  <th>Partner</th>
-                  <th>Auto</th>
-                  <th>Foul</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-
-          qualificationMatches.forEach((m) => {
-            const myTeam = m.teams.find(
-              (t) => String(t.teamNumber) == String(FTC_CONFIG.team)
+        const qualificationMatches = (mData.matches || [])
+          .filter((m) => {
+            if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return false;
+            return isQualificationMatch(m);
+          })
+          .map((m) => {
+            const myTeam = (m.teams || []).find(
+              (t) => String(t.teamNumber) === String(FTC_CONFIG.team)
             );
-            if (!myTeam) return;
+            if (!myTeam) return null;
 
             const isRed = myTeam.station.includes("Red");
-            const partner = m.teams.find(
+            const partner = (m.teams || []).find(
               (t) =>
-                String(t.teamNumber) != String(FTC_CONFIG.team) &&
+                String(t.teamNumber) !== String(FTC_CONFIG.team) &&
                 t.station.includes(isRed ? "Red" : "Blue")
             );
 
-            const myAuto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
-            const myFoul = isRed ? m.scoreRedFoul : m.scoreBlueFoul;
-            const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
-            const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
+            const auto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
+            const foul = isRed ? m.scoreRedFoul : m.scoreBlueFoul;
+            const myScore = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
+            const oppScore = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
 
-            const win = myS > oppS;
-            const tie = myS === oppS;
-            const loss = myS < oppS;
+            const win = myScore > oppScore;
+            const tie = myScore === oppScore;
+            const loss = myScore < oppScore;
+            const margin = Math.abs(myScore - oppScore);
+            const partnerTeam = partner?.teamNumber || null;
 
             if (eventIsState) {
               if (win) stateStats.wins++;
               else if (tie) stateStats.ties++;
-              else if (loss) stateStats.losses++;
+              else stateStats.losses++;
+              stateScores.push(myScore);
             } else if (eventIsPeoria) {
               if (win) peoriaStats.wins++;
               else if (tie) peoriaStats.ties++;
-              else if (loss) peoriaStats.losses++;
+              else peoriaStats.losses++;
+              peoriaScores.push(myScore);
             }
 
-            html += `
-              <tr class="${win ? "win-row" : tie ? "tie-row" : "loss-row"}">
-                <td>${formatMatchLabel(m.description)}</td>
-                <td class="${win ? "win-status" : tie ? "tie-status" : "loss-status"}">
-                  ${win ? "WIN" : tie ? "TIE" : "LOSS"} ${myS}-${oppS}
-                </td>
-                <td>#${partner?.teamNumber || "??"}</td>
-                <td class="auto-pts">${myAuto ?? 0}</td>
-                <td>${myFoul ?? 0}</td>
-                <td class="total-pts">${myS}</td>
-              </tr>
-            `;
-          });
+            if (partnerTeam) {
+              const prev = partnerMap.get(String(partnerTeam)) || {
+                matches: 0,
+                wins: 0
+              };
+              prev.matches += 1;
+              if (win) prev.wins += 1;
+              partnerMap.set(String(partnerTeam), prev);
+            }
 
-          html += `
-              </tbody>
-            </table>
-          `;
+            if (!tie && margin <= CLOSE_MATCH_MARGIN) {
+              if (win) closeWins++;
+              else closeLosses++;
+            }
+
+            if (loss && foul >= margin) {
+              foulSwingMatches++;
+            }
+
+            const matchRecord = {
+              eventName: event.name,
+              eventShortName: event.name,
+              label: formatMatchLabel(m.description),
+              chartLabel: `${event.name} · ${formatMatchLabel(m.description)}`,
+              partnerTeam,
+              auto: auto ?? 0,
+              foul: foul ?? 0,
+              myScore,
+              oppScore,
+              win,
+              tie,
+              loss
+            };
+
+            allMatches.push(matchRecord);
+
+            if (!bestScoreMatch || myScore > bestScoreMatch.myScore) {
+              bestScoreMatch = matchRecord;
+            }
+
+            return matchRecord;
+          })
+          .filter(Boolean);
+
+        const eventAvgScore = average(qualificationMatches.map((m) => m.myScore));
+        eventChartSummaries.push({
+          name: event.name,
+          shortName: event.name.length > 26 ? `${event.name.slice(0, 26)}…` : event.name,
+          avgScore: eventAvgScore || 0
+        });
+
+        renderedEvents.push(
+          buildEventBlock(
+            event,
+            eventRank,
+            aData.awards || [],
+            qualificationMatches,
+            i === 0
+          )
+        );
+      }
+
+      root.innerHTML = renderedEvents.join("");
+
+      // --- Top hero stats ---
+      setText("peoria-rank", peoriaStats.rank !== null ? `#${peoriaStats.rank}` : "N/A");
+      setText("peoria-record", `${peoriaStats.wins}-${peoriaStats.losses}-${peoriaStats.ties}`);
+      setText("state-rank", stateStats.rank !== null ? `#${stateStats.rank}` : "N/A");
+      setText("state-record", `${stateStats.wins}-${stateStats.losses}-${stateStats.ties}`);
+
+      // --- Summary calculations ---
+      const totalMatches = allMatches.length;
+      const totalWins = allMatches.filter((m) => m.win).length;
+      const totalScores = allMatches.map((m) => m.myScore);
+      const totalAutos = allMatches.map((m) => m.auto);
+      const totalFouls = allMatches.map((m) => m.foul);
+
+      const avgScore = average(totalScores);
+      const avgAuto = average(totalAutos);
+      const avgFoul = average(totalFouls);
+      const bestScore = totalScores.length ? Math.max(...totalScores) : 0;
+      const winRate = totalMatches ? (totalWins / totalMatches) * 100 : 0;
+      const autoContribution = avgScore ? (avgAuto / avgScore) * 100 : 0;
+      const consistency = standardDeviation(totalScores);
+
+      let bestPartnerText = "Not enough repeat pairings";
+      let bestPartner = null;
+
+      for (const [teamNumber, stats] of partnerMap.entries()) {
+        if (stats.matches < MIN_PARTNER_MATCHES) continue;
+        const rate = stats.wins / stats.matches;
+        if (
+          !bestPartner ||
+          rate > bestPartner.rate ||
+          (rate === bestPartner.rate && stats.matches > bestPartner.matches)
+        ) {
+          bestPartner = {
+            teamNumber,
+            matches: stats.matches,
+            wins: stats.wins,
+            rate
+          };
         }
-
-        block.innerHTML = html;
-        root.appendChild(block);
       }
 
-      const peoriaRankEl = document.getElementById("peoria-rank");
-      const peoriaRecordEl = document.getElementById("peoria-record");
-      const stateRankEl = document.getElementById("state-rank");
-      const stateRecordEl = document.getElementById("state-record");
-
-      if (peoriaRankEl) {
-        peoriaRankEl.innerText =
-          peoriaStats.rank !== null ? `#${peoriaStats.rank}` : "N/A";
+      if (bestPartner) {
+        bestPartnerText = `#${bestPartner.teamNumber} · ${formatPercent(bestPartner.rate * 100)} over ${bestPartner.matches} matches`;
       }
 
-      if (peoriaRecordEl) {
-        peoriaRecordEl.innerText = `${peoriaStats.wins}-${peoriaStats.losses}-${peoriaStats.ties}`;
-      }
+      const summary = {
+        avgScoreText: totalMatches ? `${round(avgScore, 1)}` : "N/A",
+        bestScoreText: bestScoreMatch ? `${bestScore} (${bestScoreMatch.label})` : "N/A",
+        avgAutoText: totalMatches ? `${round(avgAuto, 1)}` : "N/A",
+        avgFoulText: totalMatches ? `${round(avgFoul, 1)}` : "N/A",
+        winRateText: totalMatches ? formatPercent(winRate) : "N/A",
+        autoContributionText: totalMatches ? formatPercent(autoContribution) : "N/A",
+        closeRecordText: `${closeWins}-${closeLosses}`,
+        consistencyText: totalMatches ? consistencyLabel(consistency) : "N/A",
+        bestPartnerText,
+        penaltyImpactText: `${foulSwingMatches} foul-swing loss${foulSwingMatches === 1 ? "" : "es"}`,
+        peoriaAvgText: peoriaScores.length ? `${round(average(peoriaScores), 1)}` : "N/A",
+        stateAvgText: stateScores.length ? `${round(average(stateScores), 1)}` : "N/A"
+      };
 
-      if (stateRankEl) {
-        stateRankEl.innerText =
-          stateStats.rank !== null ? `#${stateStats.rank}` : "N/A";
-      }
-
-      if (stateRecordEl) {
-        stateRecordEl.innerText = `${stateStats.wins}-${stateStats.losses}-${stateStats.ties}`;
-      }
+      renderSummaryCards(summary);
+      renderCharts(allMatches, eventChartSummaries);
     } catch (e) {
       console.error("Telemetry error:", e);
+      destroyCharts();
       root.innerHTML =
         "<div style='text-align:center; padding:20px; color:#c00; font-family:monospace;'>[ DATA SYNC FAILED — check console for details ]</div>";
+
+      [
+        "avg-score",
+        "best-score",
+        "avg-auto",
+        "avg-foul",
+        "win-rate",
+        "auto-contribution",
+        "close-record",
+        "consistency",
+        "best-partner",
+        "penalty-impact",
+        "peoria-avg",
+        "state-avg",
+        "peoria-rank",
+        "peoria-record",
+        "state-rank",
+        "state-record"
+      ].forEach((id) => setText(id, "--"));
     }
   }
 
-  // --- 6. INIT ---
+  // --- 7. INIT ---
   document.addEventListener("DOMContentLoaded", () => {
     injectNavbar();
     loadCarousel();
     fetchTelemetry();
   });
 })();
+    
