@@ -13,6 +13,11 @@ body {
     overflow-x: hidden;
 }
 
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 /* --- HERO SECTION --- */
 .hero {
     padding: 4rem 2rem;
@@ -30,6 +35,7 @@ body {
 
 .hero-intro {
     flex: 1 1 500px;
+    max-width: 100%;
 }
 
 .hero-heading {
@@ -41,7 +47,7 @@ body {
 }
 
 .highlight {
-    background: linear-gradient(to right, #b7edef, #e8f7f9); 
+    background: linear-gradient(to right, #b7edef, #e8f7f9);
     padding: 0.1rem 0.3rem;
     border-radius: 4px;
 }
@@ -82,6 +88,9 @@ body {
 /* --- BUTTONS --- */
 .social-buttons {
     margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .social-button {
@@ -93,7 +102,6 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 0.9rem;
-    margin-right: 0.5rem;
     background: white;
     transition: all 0.2s;
 }
@@ -101,6 +109,10 @@ body {
 .social-button:hover {
     background: #f0f0f0;
     border-color: #bbb;
+}
+
+.hero-cta {
+    margin-bottom: 2rem;
 }
 
 .main-button {
@@ -118,9 +130,31 @@ body {
     transform: translateY(-2px);
 }
 
+/* --- SPONSOR LOGOS --- */
+.sponsor-logos {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.sponsor-logos img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.sponsor-logos img:hover {
+    opacity: 1;
+}
+
 /* --- UPDATES CAROUSEL --- */
 .hero-latest {
     flex: 0 1 350px;
+    max-width: 100%;
 }
 
 .latest-heading {
@@ -209,6 +243,7 @@ body {
     background: #fff9db;
     padding: 0.8rem 1.5rem;
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
@@ -256,9 +291,15 @@ body {
 
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
-    .hero-heading { font-size: 2rem; }
-    .hero-content { flex-direction: column; }
+    .hero { padding: 2rem 1rem; }
+    .hero-heading { font-size: 1.8rem; }
+    .hero-content { flex-direction: column; gap: 2rem; }
+    .hero-intro { flex-basis: auto; }
+    .hero-latest { flex-basis: auto; }
     .latest-list { height: auto; }
     .latest-card { position: relative; margin-bottom: 1rem; transform: none !important; opacity: 1 !important; }
+    .sponsor-logos img { height: 30px; }
+    .event-header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
     .match-table th:nth-child(3), .match-table td:nth-child(3) { display: none; }
+    .match-table td, .match-table th { padding: 10px 8px; font-size: 0.8rem; }
 }
