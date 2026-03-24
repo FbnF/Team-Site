@@ -8,10 +8,20 @@
   };
 
   const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
-  const PROXY = "https://api.allorigins.win/raw?url=";
   const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
 
-  // --- 2. UTILITIES ---
+  // --- 2. CORS PROXY HELPER ---
+  // allorigins does NOT forward your Authorization header to the FTC API.
+  // corsproxy.io forwards request headers, so Basic auth actually reaches FIRST.
+  // If corsproxy.io ever goes down, swap in another header-forwarding proxy.
+  function proxiedFetch(url) {
+    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
+    return fetch(proxyUrl, {
+      headers: { "Authorization": "Basic " + AUTH_B64 }
+    });
+  }
+
+  // --- 3. UTILITIES ---
   function getScriptUrl() {
     const scripts = document.getElementsByTagName('script');
     const thisScript = document.currentScript || Array.from(scripts).find((s) => (s.src || '').includes('script.js'));
@@ -24,7 +34,7 @@
     return new URL(relPath, new URL('.', scriptUrl)).href;
   }
 
-  // --- 3. NAVBAR & CAROUSEL (Existing Logic) ---
+  // --- 4. NAVBAR & CAROUSEL ---
   async function injectNavbar() {
     const placeholder = document.getElementById('navbar-placeholder');
     if (!placeholder) return;
@@ -68,34 +78,41 @@
     }, 3000);
   }
 
-  // --- 4. TELEMETRY ENGINE (Restored) ---
+  // --- 5. TELEMETRY ENGINE ---
   async function fetchTelemetry() {
     const root = document.getElementById('season-root');
     if (!root) return;
 
     try {
-      const headers = { 'Authorization': `Basic ${AUTH_B64}` };
-      const evUrl = encodeURIComponent(`${BASE_URL}/${FTC_CONFIG.season}/events?teamNumber=${FTC_CONFIG.team}`);
-      const evRes = await fetch(PROXY + evUrl, { headers });
+      // Fetch events for this team
+      const evRes = await proxiedFetch(
+        `${BASE_URL}/${FTC_CONFIG.season}/events?teamNumber=${FTC_CONFIG.team}`
+      );
+      if (!evRes.ok) throw new Error(`Events API returned ${evRes.status}`);
       const evData = await evRes.json();
       const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
 
-      // Live Rank Header
-      const rUrl = encodeURIComponent(`${BASE_URL}/${FTC_CONFIG.season}/rankings/${events[0].code}?teamNumber=${FTC_CONFIG.team}`);
-      fetch(PROXY + rUrl, { headers }).then(res => res.json()).then(data => {
-        if(data.rankings?.[0]) {
+      // Live Rank from most recent event
+      proxiedFetch(
+        `${BASE_URL}/${FTC_CONFIG.season}/rankings/${events[0].code}?teamNumber=${FTC_CONFIG.team}`
+      ).then(res => res.json()).then(data => {
+        if (data.rankings?.[0]) {
           document.getElementById('live-rank').innerText = `#${data.rankings[0].rank}`;
-          document.getElementById('live-record').innerText = `${data.rankings[0].wins}-${data.rankings[0].losses}-${data.rankings[0].ties}`;
+          document.getElementById('live-record').innerText =
+            `${data.rankings[0].wins}-${data.rankings[0].losses}-${data.rankings[0].ties}`;
         }
-      });
+      }).catch(err => console.warn('Rank fetch failed:', err));
 
-      root.innerHTML = ""; 
+      // Build event blocks
+      root.innerHTML = "";
       for (const event of events) {
         const block = document.createElement('div');
         block.className = "event-block";
-        const mUrl = encodeURIComponent(`${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${FTC_CONFIG.team}`);
-        const aUrl = encodeURIComponent(`${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`);
-        const [mRes, aRes] = await Promise.all([fetch(PROXY + mUrl, { headers }), fetch(PROXY + aUrl, { headers })]);
+
+        const [mRes, aRes] = await Promise.all([
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${FTC_CONFIG.team}`),
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`)
+        ]);
         const mData = await mRes.json();
         const aData = await aRes.json();
 
@@ -107,7 +124,9 @@
           html += `<table class="match-table"><thead><tr><th>Match</th><th>Result</th><th>Partner</th><th>Auto</th><th>Total</th></tr></thead><tbody>`;
           mData.matches.forEach(m => {
             if (m.scoreRedFinal === null) return;
-            const isRed = m.teams.find(t => t.teamNumber == FTC_CONFIG.team).station.includes('Red');
+            const myTeam = m.teams.find(t => t.teamNumber == FTC_CONFIG.team);
+            if (!myTeam) return;
+            const isRed = myTeam.station.includes('Red');
             const partner = m.teams.find(t => t.teamNumber != FTC_CONFIG.team && t.station.includes(isRed ? 'Red' : 'Blue'));
             const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
             const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
@@ -116,17 +135,21 @@
               <td>${m.description.replace('Qualification ', 'Q')}</td>
               <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
               <td>#${partner?.teamNumber || '??'}</td>
-              <td>${isRed ? m.scoreRedAuto : m.scoreBlueAuto}</td>
-              <td>${myS}</td></tr>`;
+              <td class="auto-pts">${isRed ? m.scoreRedAuto : m.scoreBlueAuto}</td>
+              <td class="total-pts">${myS}</td></tr>`;
           });
           html += `</tbody></table>`;
         }
         block.innerHTML = html;
         root.appendChild(block);
       }
-    } catch (e) { root.innerHTML = "<div style='text-align:center; padding:20px;'>[ DATA SYNC OFFLINE ]</div>"; }
+    } catch (e) {
+      console.error('Telemetry error:', e);
+      root.innerHTML = "<div style='text-align:center; padding:20px; color:#c00; font-family:monospace;'>[ DATA SYNC FAILED — check console for details ]</div>";
+    }
   }
 
+  // --- 6. INIT ---
   document.addEventListener('DOMContentLoaded', () => {
     injectNavbar();
     loadCarousel();
