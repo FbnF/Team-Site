@@ -10,10 +10,7 @@
   const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
   const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
 
-  // FTCScout API — free, no auth, no CORS proxy needed, has season-wide stats
-  const SCOUT_BASE = "https://api.ftcscout.org/rest/v1";
-
-  // --- 2. CORS PROXY (only needed for official FIRST API) ---
+  // --- 2. CORS PROXY ---
   function proxiedFetch(url) {
     const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
     return fetch(proxyUrl, {
@@ -78,46 +75,19 @@
     }, 3000);
   }
 
-  // --- 5. LIVE SEASON STATS (via FTCScout — season-wide, no CORS proxy needed) ---
-  async function fetchSeasonStats() {
-    try {
-      // Quick stats gives OPR rank and percentile for the whole season
-      const qRes = await fetch(`${SCOUT_BASE}/teams/${FTC_CONFIG.team}/quick-stats?season=${FTC_CONFIG.season}`);
-      if (qRes.ok) {
-        const qData = await qRes.json();
-        // quick-stats has tot (total OPR) with rank and percentile
-        if (qData?.tot?.rank) {
-          document.getElementById('live-rank').innerText = `#${qData.tot.rank}`;
-        }
-      }
-    } catch (err) { console.warn('FTCScout quick-stats failed:', err); }
-
-    try {
-      // Events endpoint gives per-event stats including W-L-T
-      const eRes = await fetch(`${SCOUT_BASE}/teams/${FTC_CONFIG.team}/events?season=${FTC_CONFIG.season}`);
-      if (eRes.ok) {
-        const events = await eRes.json();
-        let wins = 0, losses = 0, ties = 0;
-        for (const ev of events) {
-          if (ev.stats) {
-            wins += ev.stats.wins || 0;
-            losses += ev.stats.losses || 0;
-            ties += ev.stats.ties || 0;
-          }
-        }
-        if (wins + losses + ties > 0) {
-          document.getElementById('live-record').innerText = `${wins}-${losses}-${ties}`;
-        }
-      }
-    } catch (err) { console.warn('FTCScout events failed:', err); }
-  }
-
-  // --- 6. TELEMETRY ENGINE (via official FIRST API for detailed match data) ---
+  // --- 5. TELEMETRY ENGINE ---
   async function fetchTelemetry() {
     const root = document.getElementById('season-root');
     if (!root) return;
 
+    // Season-wide W-L-T tallied from all match results
+    let totalWins = 0, totalLosses = 0, totalTies = 0;
+    // Best rank found (lowest number = best, from most recent event with data)
+    let bestRank = null;
+    let bestRankEvent = null;
+
     try {
+      // Fetch events for this team
       const evRes = await proxiedFetch(
         `${BASE_URL}/${FTC_CONFIG.season}/events?teamNumber=${FTC_CONFIG.team}`
       );
@@ -125,19 +95,42 @@
       const evData = await evRes.json();
       const events = evData.events.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart));
 
+      // Build event blocks
       root.innerHTML = "";
       for (const event of events) {
         const block = document.createElement('div');
         block.className = "event-block";
 
-        const [mRes, aRes] = await Promise.all([
+        // Fetch matches, awards, and rankings for this event in parallel
+        const [mRes, aRes, rRes] = await Promise.all([
           proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${FTC_CONFIG.team}`),
-          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`)
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/awards/${event.code}/${FTC_CONFIG.team}`),
+          proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/rankings/${event.code}?teamNumber=${FTC_CONFIG.team}`)
         ]);
         const mData = await mRes.json();
         const aData = await aRes.json();
 
-        let html = `<div class="event-header"><h3>${event.name}</h3><span>${new Date(event.dateStart).toLocaleDateString()}</span></div>`;
+        // Try to get rank for this event
+        let eventRank = null;
+        try {
+          const rData = await rRes.json();
+          if (rData.rankings?.[0]) {
+            eventRank = rData.rankings[0].rank;
+            // Track the best (most recent) rank for the hero bar
+            if (bestRank === null) {
+              bestRank = eventRank;
+              bestRankEvent = event.name;
+            }
+          }
+        } catch (err) { /* rankings not available for this event */ }
+
+        // Event header — show rank if available
+        let headerRight = new Date(event.dateStart).toLocaleDateString();
+        if (eventRank !== null) {
+          headerRight = `Rank #${eventRank} · ${headerRight}`;
+        }
+        let html = `<div class="event-header"><h3>${event.name}</h3><span>${headerRight}</span></div>`;
+
         if (aData.awards?.length > 0) {
           html += `<div class="awards-ribbon">` + aData.awards.map(a => `<span class="award-tag">🏆 ${a.name}</span>`).join('') + `</div>`;
         }
@@ -152,6 +145,13 @@
             const myS = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
             const oppS = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
             const win = myS > oppS;
+            const tie = myS === oppS;
+
+            // Tally season W-L-T
+            if (win) totalWins++;
+            else if (tie) totalTies++;
+            else totalLosses++;
+
             html += `<tr class="${win ? 'win-row' : 'loss-row'}">
               <td>${m.description.replace('Qualification ', 'Q')}</td>
               <td class="${win ? 'win-status' : 'loss-status'}">${win ? 'WIN' : 'LOSS'} ${myS}-${oppS}</td>
@@ -164,17 +164,27 @@
         block.innerHTML = html;
         root.appendChild(block);
       }
+
+      // Update hero stats bar
+      if (bestRank !== null) {
+        document.getElementById('live-rank').innerText = `#${bestRank}`;
+      } else {
+        document.getElementById('live-rank').innerText = 'N/A';
+      }
+      if (totalWins + totalLosses + totalTies > 0) {
+        document.getElementById('live-record').innerText = `${totalWins}-${totalLosses}-${totalTies}`;
+      }
+
     } catch (e) {
       console.error('Telemetry error:', e);
       root.innerHTML = "<div style='text-align:center; padding:20px; color:#c00; font-family:monospace;'>[ DATA SYNC FAILED — check console for details ]</div>";
     }
   }
 
-  // --- 7. INIT ---
+  // --- 6. INIT ---
   document.addEventListener('DOMContentLoaded', () => {
     injectNavbar();
     loadCarousel();
-    fetchSeasonStats();   // FTCScout for hero rank + W-L-T
-    fetchTelemetry();     // FIRST API for detailed match tables
+    fetchTelemetry();
   });
 })();
