@@ -6,6 +6,10 @@
   <title>FbnF Robotics</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="navbar.css">
+
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -27,11 +31,12 @@
 
         <h1 class="hero-heading">
           Hi! We're <span class="highlight">Fast but not Furious</span><br>
-          proudly competing as <span class="highlight">Team</span> <span class="highlight"> #21592</span>
+          proudly competing as <span class="highlight">Team</span> <span class="highlight">#21592</span>
         </h1>
 
         <p class="hero-subtext">
-          We design, build, and code competitive FTC robots — and we have a lot of fun doing it. Follow our journey through the challenges, breakthroughs, and victories that make up our season.
+          We design, build, and code competitive FTC robots — and we have a lot of fun doing it.
+          Follow our journey through the challenges, breakthroughs, and victories that make up our season.
         </p>
 
         <div id="live-status-bar" class="live-status-container">
@@ -70,17 +75,141 @@
 
       <div class="hero-latest">
         <div class="latest-heading">Latest Updates</div>
-        <div id="updates" class="latest-list">
+        <div id="updates" class="latest-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="season-summary" class="summary-section">
+    <div class="summary-shell">
+      <div class="section-heading-wrap">
+        <p class="section-kicker">Season Overview</p>
+        <h2 class="section-title">Performance Snapshot</h2>
+        <p class="section-subtitle">
+          A quick look at our strongest stats, scoring trends, and season performance.
+        </p>
+      </div>
+
+      <div id="insights-grid" class="insights-grid">
+        <div class="insight-card">
+          <span class="insight-label">Average Score</span>
+          <span id="avg-score" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Best Score</span>
+          <span id="best-score" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Average Auto</span>
+          <span id="avg-auto" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Average Foul</span>
+          <span id="avg-foul" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Win Rate</span>
+          <span id="win-rate" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Auto Contribution</span>
+          <span id="auto-contribution" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Close Match Record</span>
+          <span id="close-record" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Consistency</span>
+          <span id="consistency" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Best Partner</span>
+          <span id="best-partner" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Penalty Impact</span>
+          <span id="penalty-impact" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">Peoria Avg</span>
+          <span id="peoria-avg" class="insight-value">--</span>
+        </div>
+
+        <div class="insight-card">
+          <span class="insight-label">State Avg</span>
+          <span id="state-avg" class="insight-value">--</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="charts" class="charts-section">
+    <div class="charts-shell">
+      <div class="section-heading-wrap">
+        <p class="section-kicker">Season Trends</p>
+        <h2 class="section-title">Performance Graphs</h2>
+        <p class="section-subtitle">
+          Match-by-match trends for scoring, autonomous performance, fouls, and event averages.
+        </p>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Total Score by Match</h3>
+          </div>
+          <canvas id="scoreTrendChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Auto Points by Match</h3>
+          </div>
+          <canvas id="autoTrendChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Foul Points by Match</h3>
+          </div>
+          <canvas id="foulTrendChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Average Score by Event</h3>
+          </div>
+          <canvas id="eventAvgChart"></canvas>
         </div>
       </div>
     </div>
   </section>
 
   <section id="telemetry" class="telemetry-section">
-    <h2 class="telemetry-heading">> SEASON_LOG_ANALYTICS</h2>
-    <div id="season-root">
-      <div id="sync-msg" style="text-align: center; padding: 50px; color: #888; font-family: monospace;">
-        [ SYNCING_WITH_FIRST_RELAY... ]
+    <div class="telemetry-shell">
+      <div class="section-heading-wrap">
+        <p class="section-kicker">Event Breakdown</p>
+        <h2 class="section-title">Meet-by-Meet Data</h2>
+        <p class="section-subtitle">
+          Expand each event to view awards, rank, and qualification match results.
+        </p>
+      </div>
+
+      <div id="season-root">
+        <div id="sync-msg" style="text-align: center; padding: 50px; color: #888; font-family: monospace;">
+          [ SYNCING_WITH_FIRST_RELAY... ]
+        </div>
       </div>
     </div>
   </section>
