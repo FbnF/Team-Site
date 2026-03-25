@@ -116,6 +116,19 @@
       });
       const html = await res.text();
       placeholder.innerHTML = html;
+
+      // Resolve relative paths so the navbar works from any page/subdirectory
+      placeholder.querySelectorAll("img[src]").forEach((img) => {
+        const src = img.getAttribute("src");
+        if (src && src.startsWith("./"))
+          img.src = resolveFromRoot(src.slice(2));
+      });
+      placeholder.querySelectorAll("a[href]").forEach((a) => {
+        const href = a.getAttribute("href");
+        if (href && href.startsWith("./"))
+          a.href = resolveFromRoot(href.slice(2));
+      });
+
       window.toggleMenu = () =>
         placeholder.querySelector(".nav-menu")?.classList.toggle("open");
     } catch (err) {
