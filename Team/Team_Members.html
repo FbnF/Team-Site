@@ -3,125 +3,225 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Meet the Team</title>
+  <title>Meet the Team | FbnF Robotics</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../navbar.css" />
   <link rel="stylesheet" href="team.css" />
   <script src="../script.js" defer></script>
 </head>
 <body>
-  <!-- Shared navbar will be injected here -->
   <div id="navbar-placeholder"></div>
-  </div>
 
-  <main>
-    <h1 style="text-align: center; margin-top: 2rem;">Meet the Team</h1>
-    <section class="team-grid">
-      <!-- Team Member Example -->
-       <!-- Changed pictures to reflect google form-->
-      <div class="team-member">
-        <img src="../Images/Headshots/Anagha.png" alt="Anagha">
-        <h3>Anagha</h3>
-        <p>Mechanical | Programmer | Driver</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Jai.jpg" alt="Jai"  style="object-position: 0% 15%;">
-        <h3>Jai</h3>
-        <p>Programmer</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Joseph.jpg" alt="Joseph" style="object-position: 0% 25%;">
-        <h3>Joseph</h3>
-        <p>Programmer</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Keaton.jpg" alt="Keaton">
-        <h3>Keaton</h3>
-        <p>Mechanical | Driver</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Mahek.jpg" alt="Mahek">
-        <h3>Mahek</h3>
-        <p>Mechanical | Outreach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Mark.jpg" alt="Mark">
-        <h3>Mark</h3>
-        <p>Mechanical</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Nethraa.jpeg" alt="Nethraa">
-        <h3>Nethraa</h3>
-        <p>Programmer | Outreach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Olivia.png" alt="Olivia">
-        <h3>Olivia</h3>
-        <p>Mechanical | Programmer | Outreach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Snigdha.jpeg" alt="Snigdha">
-        <h3>Snigdha</h3>
-        <p>Mechanical | Programmer | 3D Design | Human Player</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Soumik.png" alt="Soumik">
-        <h3>Soumik</h3>
-        <p>Mechanical | 3D Design | Driver</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Vyom.jpeg" alt="Vyom"  style="object-position: 0% 15%;">
-        <h3>Vyom</h3>
-        <p>Programmer</p>
-      </div>
-      <!-- Repeat this block for each team member -->
-    </section>
-
-    <!-- Coaches Section -->
-    <h2 style="text-align: center; margin-top: 4rem;">Coaches and Mentors</h2>
-    <section class="team-grid">
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Jay.jpg" alt="Coach Jay">
-        <h3>Coach Jay</h3>
-        <p>Head Coach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Lin.jpg" alt="Coach Lin">
-        <h3>Coach Lin</h3>
-        <p>Head Coach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Rachel.jpg" alt="Coach Rachel">
-        <h3>Coach Rachel</h3>
-        <p>Coach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Sidd.jpg" alt="Coach Sidd">
-        <h3>Coach Sidd</h3>
-        <p>Coach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Suresh.jpg" alt="Coach Suresh">
-        <h3>Coach Suresh</h3>
-        <p>Coach</p>
-      </div>
-      <div class="team-member">
-        <img src="../Images/Headshots/Coach_Albert.jpg" alt="Coach Albert">
-        <h3>Coach Albert</h3>
-        <p>Coach</p>
-      </div>
+  <!-- Hero Banner -->
+  <section class="team-hero">
+    <div class="team-hero-inner">
+      <span class="team-hero-badge">FTC Team #21592</span>
+      <h1>Meet the Team</h1>
+      <p>The engineers, coders, and builders behind <strong>Fast but not Furious</strong></p>
+    </div>
   </section>
 
-    <!-- Alumni Section -->
-    <h2 style="text-align: center; margin-top: 4rem;">Alumni</h2>
-    <section class="team-grid">
-      <div class="team-member">
-        <img src="../Images/Headshots/Sophia.png" alt="Sophia">
-        <h3>Sophia</h3>
-        <p>Programmer | 3D Design</p>
-        <p>Graduated End Of: 24/25 Season</p>
+  <main>
+
+    <!-- ── Team Members ── -->
+    <section class="team-section">
+      <div class="team-shell">
+        <h2 class="team-section-title"><span>Team Members</span></h2>
+
+        <div class="team-roster">
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Anagha.png" alt="Anagha">
+            </div>
+            <h3 class="member-name">Anagha</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>Programmer</li><li>Driver</li>
+            </ul>
+            <div class="member-badge">Leadership Award Finalist</div>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Joseph.jpg" alt="Joseph" style="object-position: 0% 25%;">
+            </div>
+            <h3 class="member-name">Joseph</h3>
+            <ul class="member-roles">
+              <li>Programmer</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Keaton.jpg" alt="Keaton">
+            </div>
+            <h3 class="member-name">Keaton</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>Driver</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Mark.jpg" alt="Mark">
+            </div>
+            <h3 class="member-name">Mark</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>CAD</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Nethraa.jpeg" alt="Nethraa">
+            </div>
+            <h3 class="member-name">Nethraa</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>Outreach</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Olivia.png" alt="Olivia">
+            </div>
+            <h3 class="member-name">Olivia</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>Programmer</li><li>Outreach</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Snigdha.jpeg" alt="Snigdha">
+            </div>
+            <h3 class="member-name">Snigdha</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>Programmer</li><li>CAD</li><li>Human Player</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Soumik.png" alt="Soumik">
+            </div>
+            <h3 class="member-name">Soumik</h3>
+            <ul class="member-roles">
+              <li>Mechanical</li><li>3D Design</li><li>Driver</li>
+            </ul>
+          </article>
+
+          <article class="member">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Vyom.jpeg" alt="Vyom" style="object-position: 0% 15%;">
+            </div>
+            <h3 class="member-name">Vyom</h3>
+            <ul class="member-roles">
+              <li>Programmer</li><li>Driver</li>
+            </ul>
+          </article>
+
+        </div>
       </div>
     </section>
+
+    <!-- ── Coaches & Mentors ── -->
+    <section class="team-section team-section--alt">
+      <div class="team-shell">
+        <h2 class="team-section-title"><span>Coaches &amp; Mentors</span></h2>
+
+        <div class="team-roster">
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Jay.jpg" alt="Coach Jay" style="object-position: 50% 20%;">
+            </div>
+            <h3 class="member-name">Coach Jay</h3>
+            <ul class="member-roles"><li>Head Coach</li></ul>
+          </article>
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Lin.jpg" alt="Coach Lin">
+            </div>
+            <h3 class="member-name">Coach Lin</h3>
+            <ul class="member-roles"><li>Head Coach</li></ul>
+          </article>
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Rachel.jpg" alt="Coach Rachel">
+            </div>
+            <h3 class="member-name">Coach Rachel</h3>
+            <ul class="member-roles"><li>Coach</li></ul>
+          </article>
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Sidd.jpg" alt="Coach Sidd">
+            </div>
+            <h3 class="member-name">Coach Sidd</h3>
+            <ul class="member-roles"><li>Coach</li></ul>
+          </article>
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Suresh.jpg" alt="Coach Suresh">
+            </div>
+            <h3 class="member-name">Coach Suresh</h3>
+            <ul class="member-roles"><li>Coach</li></ul>
+          </article>
+
+          <article class="member member--coach">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Coach_Albert.jpg" alt="Coach Albert">
+            </div>
+            <h3 class="member-name">Coach Albert</h3>
+            <ul class="member-roles"><li>Coach</li></ul>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Alumni ── -->
+    <section class="team-section">
+      <div class="team-shell">
+        <h2 class="team-section-title"><span>Alumni</span></h2>
+
+        <div class="team-roster">
+
+          <article class="member member--alumni">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Jai.jpg" alt="Jai" style="object-position: 0% 15%;">
+            </div>
+            <h3 class="member-name">Jai</h3>
+            <ul class="member-roles"><li>Programmer</li></ul>
+            <p class="member-note">Graduated end of 25/26 season</p>
+          </article>
+
+          <article class="member member--alumni">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Mahek.jpg" alt="Mahek">
+            </div>
+            <h3 class="member-name">Mahek</h3>
+            <ul class="member-roles"><li>Mechanical</li><li>Outreach</li></ul>
+            <p class="member-note">Graduated end of 25/26 season</p>
+          </article>
+
+          <article class="member member--alumni">
+            <div class="member-photo">
+              <img src="../Images/Headshots/Sophia.png" alt="Sophia">
+            </div>
+            <h3 class="member-name">Sophia</h3>
+            <ul class="member-roles"><li>Programmer</li><li>3D Design</li></ul>
+            <p class="member-note">Graduated end of 24/25 season</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
   </main>
 </body>
 </html>

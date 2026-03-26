@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>2025 Season Recap</title>
+  <title>2025 Season Recap - Fast but not Furious</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../navbar.css" />
   <link rel="stylesheet" href="blog.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../script.js" defer></script>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
 
+  <!-- ───── Hero ───── -->
   <main class="hero blog-hero">
     <div class="blog-post-wrap">
       <div class="blog-post-header">
@@ -23,20 +25,33 @@
           <span class="highlight">2025 Season Recap</span>
         </h1>
 
-        <div class="blog-post-meta">
-          <span>By FTC Team 21592</span>
-          <span>|</span>
+        <div class="blog-post-meta recap-authors">
+          <div class="recap-headshot-row">
+            <img src="../Images/Headshots/Soumik.png" alt="Soumik" />
+            <img src="../Images/Headshots/Mahek.jpg" alt="Mahek" />
+            <img src="../Images/Headshots/Nethraa.jpeg" alt="Nethraa" />
+            <img src="../Images/Headshots/Jai.jpg" alt="Jai" />
+            <img src="../Images/Headshots/Olivia.png" alt="Olivia" />
+            <img src="../Images/Headshots/Anagha.png" alt="Anagha" />
+            <img src="../Images/Headshots/Joseph.jpg" alt="Joseph" />
+            <img src="../Images/Headshots/Keaton.jpg" alt="Keaton" />
+            <img src="../Images/Headshots/Mark.jpg" alt="Mark" />
+            <img src="../Images/Headshots/Vyom.jpeg" alt="Vyom" />
+            <img src="../Images/Headshots/Snigdha.jpeg" alt="Snigdha" />
+          </div>
           <span>End of Season Journal</span>
         </div>
 
         <p class="blog-post-summary">
-          From our first meets through the Illinois Championship, this season was about building consistency, improving match by match, and growing stronger as a team in both competition and outreach.
+          From our first meets through the Illinois Championship, this season was about
+          building consistency, improving match by match, and growing stronger as a team
+          in both competition and outreach.
         </p>
       </div>
 
       <div class="blog-post-image-wrap">
         <img
-          src="../Images/Blog_Images/Season_Recap_2025.jpg"
+          src="../Images/Blog_Images/Season_Recap_2025/Season_Recap_2025.jpg"
           alt="Fast but not Furious team at the end of the 2025 season"
           class="blog-hero-image"
         />
@@ -44,75 +59,483 @@
     </div>
   </main>
 
+  <!-- ───── Live Season Stats ───── -->
+  <div class="recap-stats-section">
+    <div class="insights-grid" id="recap-stats">
+      <div class="insight-card">
+        <span class="insight-label">Average Score</span>
+        <span class="insight-value" id="recap-avg-score">--</span>
+      </div>
+      <div class="insight-card">
+        <span class="insight-label">Best Score</span>
+        <span class="insight-value" id="recap-best-score">--</span>
+      </div>
+      <div class="insight-card">
+        <span class="insight-label">Win Rate</span>
+        <span class="insight-value" id="recap-win-rate">--</span>
+      </div>
+      <div class="insight-card">
+        <span class="insight-label">Average Auto</span>
+        <span class="insight-value" id="recap-avg-auto">--</span>
+      </div>
+      <div class="insight-card">
+        <span class="insight-label">Peoria Record</span>
+        <span class="insight-value" id="recap-peoria-record">--</span>
+      </div>
+      <div class="insight-card">
+        <span class="insight-label">State Record</span>
+        <span class="insight-value" id="recap-state-record">--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Score Trend Chart ───── -->
+  <div class="recap-chart-wrap">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>Score Progression Across the Season</h3>
+      </div>
+      <div class="recap-chart-canvas-wrap">
+        <canvas id="recapScoreTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── The Robot: RampRover ───── -->
   <section class="blog-post-content">
+    <h2>Meet RampRover</h2>
+
+    <div class="recap-img-float recap-img-right">
+      <img src="../Images/Blog_Images/Season_Recap_2025/ramprover.jpg"
+           alt="RampRover - Team 21592's competition robot" />
+    </div>
+
     <p>
-      This season was less about one big breakthrough and more about steady improvement.
-      From our early meets to the Illinois Championship, we focused on building a robot
-      that could perform reliably, refining our match strategy, and becoming more consistent
-      in the way we competed.
+      Our competition robot, <strong>RampRover</strong>, features a two-stage active intake,
+      a gravity-fed tunnel transfer, and our custom <strong>CAMJET</strong> launch system
+      (CAM-Activated Motion &amp; Joint Ejection Tool). The intake uses two stages of gecko
+      wheels driven by a 1150&nbsp;rpm high-torque motor through a multi-gear system,
+      designed to accept only one artifact at a time while maintaining compression throughout
+      the flow.
     </p>
 
     <p>
-      Over the course of the season, our scoring became more stable as we improved both our
-      robot systems and our in-match decision making. We spent time tuning, testing, and
-      learning from each event so that we could carry those improvements forward instead of
-      starting over every time.
+      The transfer mimics a slide, using gravity to guide artifacts toward the launcher.
+      Iterating on 3D-printed inlets and adding a hood cover solved early stacking issues,
+      and a horizontal transfer servo with surgical tubing gives artifacts the final push
+      to the CAMJET.
     </p>
 
     <p>
-      Autonomous was one of the areas where that progress was most visible. As we continued
-      iterating on code and setup, we improved our ability to start matches in a stronger
-      position and build momentum early. That improvement helped support the rest of each
-      match and made our overall performance more repeatable.
+      The CAMJET itself can fire <strong>3 artifacts in 3 seconds</strong>. It uses a
+      balanced CAM lobe, tuned by optimizing mass distribution and infill proportions,
+      paired with a rubber-band tensioner to prevent premature ejection. Getting here meant
+      going through beauty-blender and 3D-printed shovel prototypes first, each teaching us
+      something about consistency and rapid-fire performance.
+    </p>
+
+    <h2>Physics-Driven Software</h2>
+
+    <div class="recap-img-float recap-img-right">
+      <video autoplay loop muted playsinline
+             src="../Images/Blog_Images/Season_Recap_2025/Physics.mp4"
+             class="recap-video"></video>
+    </div>
+
+    <p>
+      Math and physics guided both our robot design and our software stack. Early
+      launch-path inconsistencies were traced to the <strong>Magnus Effect</strong>, where a
+      spinning artifact drifts due to pressure differences described by Bernoulli's Principle.
+      We modeled it with the scalar lift equation to set an initial test angle.
     </p>
 
     <p>
-      By the time we reached Meet 4, our hard work was starting to show more clearly in
-      competition. We played strong matches, improved our standing, and were selected into
-      alliance play. That event felt like an important marker for the team because it showed
-      how far we had come in both performance and confidence.
+      Instead of fixed ticks-per-second values, our software now <strong>auto-tunes velocity
+      and power</strong>. Using our Limelight vision system, we compute distance from
+      AprilTags and derive a target TPS through projectile-motion equations. Combined with
+      automatic alignment (averaging min/max angle offsets at each distance), our
+      driver-assist features achieved <strong>91% scoring accuracy</strong>.
+      We verified all calculations with our high-school AP Physics teacher.
     </p>
 
     <p>
-      At the Illinois Championship, we were proud to compete at a higher level and represent
-      the progress we had made throughout the season. Just reaching that stage was meaningful,
-      but so was the chance to present the work behind our robot, our process, and our team.
+      For autonomous, we developed action classes for motor control, launching sequences,
+      and servo management. A distance-sensor-triggered action class automatically activates
+      intake and the horizontal transfer servo once the first artifact launches, cutting
+      cycle time. We built <strong>7 autonomous paths</strong> for maximum alliance
+      flexibility.
+    </p>
+  </section>
+
+  <!-- ───── Robot 2 ───── -->
+  <section class="blog-post-content">
+    <h2>Robot 2: Our Advanced Learning Platform</h2>
+
+    <div class="recap-img-float recap-img-left">
+      <img src="../Images/Blog_Images/Season_Recap_2025/robot2.jpg"
+           alt="Robot 2 - experimental laser-cut plexiglass chassis with turret" />
+    </div>
+
+    <p>
+      Alongside RampRover, we built a second robot as an advanced learning platform.
+      Robot&nbsp;2 moved away from standard parts entirely, experimenting with a
+      <strong>belt-driven, laser-cut plexiglass chassis</strong> and a fully integrated
+      <strong>turret system</strong>, allowing it to shoot from any position and angle
+      on the field.
     </p>
 
     <p>
-      Judging and documentation were another major part of our season. Through our portfolio
-      and presentations, we worked to show not only what we built, but how we built it.
-      That included design decisions, iteration, testing, outreach, and the way our team
-      collaborates across programming, mechanical work, CAD, and communication.
+      While RampRover was ultimately chosen for competition due to its consistency and speed,
+      Robot&nbsp;2 expanded our CAD skills across the entire team and let us explore ideas
+      we brought back to improve RampRover's design.
+    </p>
+  </section>
+
+  <!-- ───── Competition ───── -->
+  <section class="blog-post-content">
+    <h2>Competition Journey</h2>
+
+    <div class="recap-img-float recap-img-right">
+      <img src="../Images/Blog_Images/Season_Recap_2025/competition.jpg"
+           alt="Team 21592 competing at a meet" />
+    </div>
+
+    <p>
+      This season was about steady improvement rather than one big breakthrough. From our
+      early Peoria meets to the Illinois Championship, we focused on building a robot that
+      performed reliably and refining our match strategy event by event.
     </p>
 
     <p>
-      We were honored to earn recognition during the season, including the Design Award at
-      the Peoria Western League Tournament, as well as FIRST Leadership Award Finalist and
-      Sustain Award (2nd Place) recognition at the Illinois Championship. Those awards meant
-      a lot because they reflected both the technical side of our work and the way we
-      developed as a team.
+      By <strong>Meet 4</strong>, the progress was clear. We played strong qualification
+      matches, improved our standing, and were selected into alliance play. It was a turning point
+      that showed how far we had come in both performance and confidence.
     </p>
 
     <p>
-      Outreach continued to be an important part of what we do. Events like Engineering Day,
-      CAD workshops, and other community activities gave us chances to share robotics with
-      younger students and families. Those experiences matter to us because they remind us
-      that robotics is not only about competition — it is also about inspiring curiosity,
-      confidence, and future interest in STEM.
+      At the <strong>Illinois Championship</strong>, we competed at a higher level and
+      presented the full scope of our work, from design iteration and software to outreach
+      and team culture. Just reaching State was meaningful, but being able to represent our
+      season's growth on that stage made it even more rewarding.
+    </p>
+
+    <h2>Awards &amp; Recognition</h2>
+
+    <div class="recap-img-float recap-img-left">
+      <img src="../Images/Blog_Images/Season_Recap_2025/awards.jpg"
+           alt="Team receiving an award at competition" />
+    </div>
+
+    <p>
+      We were honored to earn recognition that reflected both the technical and team-building
+      sides of our work:
+    </p>
+    <ul>
+      <li><strong>Design Award</strong> - Peoria Western League Tournament</li>
+      <li><strong>FIRST Leadership Award Finalist</strong> - Illinois Championship</li>
+      <li><strong>Sustain Award, 2nd Place</strong> - Illinois Championship</li>
+    </ul>
+    <p>
+      These awards validated our engineering process, our documentation through portfolio and
+      judging presentations, and the collaborative culture we built across programming,
+      mechanical, CAD, and communications.
+    </p>
+  </section>
+
+  <!-- ───── Outreach ───── -->
+  <section class="blog-post-content">
+    <h2>Community &amp; Outreach</h2>
+
+    <div class="recap-carousel" id="outreach-carousel">
+      <div class="recap-carousel-track">
+        <div class="recap-carousel-slide">
+          <img src="../Images/Blog_Images/Season_Recap_2025/bunnybot.jpg"
+               alt="Bunny Bot at Ignite Peoria" />
+          <div class="recap-carousel-caption">Bunny Bot at Ignite Peoria</div>
+        </div>
+        <div class="recap-carousel-slide">
+          <img src="../Images/Blog_Images/Season_Recap_2025/outreach.jpg"
+               alt="Engineering Day at Riverfront Museum" />
+          <div class="recap-carousel-caption">Engineering Day at Riverfront Museum</div>
+        </div>
+        <div class="recap-carousel-slide">
+          <img src="../Images/Blog_Images/Season_Recap_2025/high_voltage.jpg"
+               alt="Collaborating with rookie team High Voltage (#29654)" />
+          <div class="recap-carousel-caption">Match play with rookie team High Voltage (#29654)</div>
+        </div>
+        <div class="recap-carousel-slide">
+          <img src="../Images/Blog_Images/Season_Recap_2025/IncrediBots.jpg"
+               alt="Mentoring the IncrediBots FLL team" />
+          <div class="recap-carousel-caption">Mentoring IncrediBots FLL (#39273)</div>
+        </div>
+      </div>
+      <button class="recap-carousel-btn recap-carousel-prev" aria-label="Previous slide">&lsaquo;</button>
+      <button class="recap-carousel-btn recap-carousel-next" aria-label="Next slide">&rsaquo;</button>
+    </div>
+
+    <p>
+      Our biggest outreach initiative was <strong>Bunny Bot</strong>, a collaboration with
+      the Society of Women Engineers to design and build a robot that inspires youth interest
+      in STEM. Bunny Bot debuted at <strong>Ignite Peoria</strong> to over 4,000 attendees,
+      traveled to Peoria High School's blood drive, and is now available to check out from
+      the Caterpillar Library, creating a sustainable avenue for other organizations to
+      contribute to our mission.
     </p>
 
     <p>
-      Looking back, this season gave us a stronger understanding of what it takes to improve:
-      patience, iteration, teamwork, and the willingness to keep refining details even when
-      progress feels slow. Every meet, outreach event, and build session added to that.
+      Beyond Bunny Bot, we stayed busy with community engagements throughout the year:
     </p>
+    <ul>
+      <li>Free 3-day <strong>CAD workshops</strong> teaching kids Onshape</li>
+      <li><strong>Engineering Day</strong> at Riverfront Museum, demoing our robots to
+        3,700+ attendees and recruiting 3 new rookie members</li>
+      <li><strong>STEM kits</strong> using light-up fruits to teach electric currents and batteries</li>
+      <li>Showcases at Banner Elementary's fall festival, Dunlap Library tech day, and with
+        Boy Scouts</li>
+      <li>Mentoring the <strong>IncrediBots FLL team (#39273)</strong> and introducing them to FTC</li>
+      <li>Collaborating for match play with rookie team <strong>High Voltage (#29654)</strong></li>
+    </ul>
+  </section>
+
+  <!-- ───── Process ───── -->
+  <section class="blog-post-content">
+    <h2>How We Work</h2>
+
+    <p>
+      This season we expanded our team with 3 rookie members, a new mentor, and a new head
+      coach. To keep everyone aligned, we followed the <strong>Agile development
+      philosophy</strong>, using Kanban boards, Gantt charts, and meeting minutes to track
+      tasks, deadlines, and responsibilities.
+    </p>
+
+    <div class="recap-img-float recap-img-right">
+      <img src="../Images/Blog_Images/Season_Recap_2025/World_Cafe.jpg"
+           alt="World Café brainstorming session" />
+    </div>
+
+    <p>
+      We also introduced <strong>World Caf&eacute;</strong>, a structured brainstorming process
+      where subgroups rotate through different robot subsystems (intake, launch, transfer,
+      and more), building on each other's ideas. This increased engagement from every team
+      member and generated more ideas early in the season, making it an integral part of our
+      design process.
+    </p>
+
+    <p>
+      Season-long training sessions gave all members exposure to CAD, programming, and
+      mechanical work. With the help of our design and programming mentors, we ran both
+      virtual and in-person workshops so everyone could contribute meaningfully regardless
+      of experience level.
+    </p>
+  </section>
+
+  <!-- ───── Looking Ahead ───── -->
+  <section class="blog-post-content">
+    <h2>Looking Ahead</h2>
 
     <p>
       More than anything, this season gave us a foundation to build on. We leave it with
       stronger experience, clearer direction, and a better sense of who we are as a team.
-      We are proud of what we accomplished, and excited for what comes next.
+      The lessons from every meet, outreach event, and late-night build session add up,
+      and we are carrying all of it into next season.
+    </p>
+
+    <p>
+      We aim to keep growing: deeper technical skills, broader community impact, and an even
+      stronger team culture. We're proud of what we accomplished, and excited for what
+      comes next.
     </p>
   </section>
+
+  <script>
+    (function () {
+      const FTC_CONFIG = {
+        user: "Kimng",
+        key: "9B427DDE-72D8-46FA-95DB-4AF53CF939E6",
+        team: "21592",
+        season: "2025"
+      };
+
+      const AUTH_B64 = btoa(FTC_CONFIG.user + ":" + FTC_CONFIG.key);
+      const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
+
+      function proxiedFetch(url) {
+        return fetch("https://corsproxy.io/?" + encodeURIComponent(url), {
+          headers: { Authorization: "Basic " + AUTH_B64 }
+        });
+      }
+
+      function isQual(m) {
+        return (m.description || "").toLowerCase().includes("qualification");
+      }
+
+      function isState(n) {
+        return (n || "").toLowerCase().includes("illinois championship");
+      }
+
+      function isPeoria(n) {
+        var lo = (n || "").toLowerCase();
+        return lo.includes("peoria meet") || lo.includes("peoria western league tournament");
+      }
+
+      function shortName(n) {
+        var lo = (n || "").toLowerCase();
+        if (lo.includes("solomon division") || lo.includes("illinois championship")) return "State";
+        if (lo.includes("peoria western league tournament")) return "PWLT";
+        if (lo.includes("peoria meet 1")) return "Meet 1";
+        if (lo.includes("peoria meet 2")) return "Meet 2";
+        if (lo.includes("peoria meet 3")) return "Meet 3";
+        if (lo.includes("peoria meet 4")) return "Meet 4";
+        return n.length > 12 ? n.slice(0, 12) : n;
+      }
+
+      function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val;
+      }
+
+      function avg(arr) {
+        return arr.length ? arr.reduce(function (s, v) { return s + v; }, 0) / arr.length : 0;
+      }
+
+      function round(v, d) {
+        var f = Math.pow(10, d || 0);
+        return Math.round(v * f) / f;
+      }
+
+      var recapChart = null;
+
+      async function loadRecapStats() {
+        var peoria = { w: 0, l: 0, t: 0 };
+        var state = { w: 0, l: 0, t: 0 };
+        var allMatches = [];
+
+        try {
+          var evRes = await proxiedFetch(
+            BASE_URL + "/" + FTC_CONFIG.season + "/events?teamNumber=" + FTC_CONFIG.team
+          );
+          if (!evRes.ok) return;
+          var evData = await evRes.json();
+          var events = (evData.events || []).sort(
+            function (a, b) { return new Date(a.dateStart) - new Date(b.dateStart); }
+          );
+
+          for (var i = 0; i < events.length; i++) {
+            var ev = events[i];
+            var mRes = await proxiedFetch(
+              BASE_URL + "/" + FTC_CONFIG.season + "/matches/" + ev.code +
+              "?teamNumber=" + FTC_CONFIG.team
+            );
+            var mData = await mRes.json();
+
+            (mData.matches || []).forEach(function (m) {
+              if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return;
+              if (!isQual(m)) return;
+
+              var t = (m.teams || []).find(function (x) {
+                return String(x.teamNumber) === FTC_CONFIG.team;
+              });
+              if (!t) return;
+
+              var red = t.station.includes("Red");
+              var my = red ? m.scoreRedFinal : m.scoreBlueFinal;
+              var opp = red ? m.scoreBlueFinal : m.scoreRedFinal;
+              var auto = red ? m.scoreRedAuto : m.scoreBlueAuto;
+              var win = my > opp;
+              var tie = my === opp;
+
+              if (isState(ev.name)) { if (win) state.w++; else if (tie) state.t++; else state.l++; }
+              if (isPeoria(ev.name)) { if (win) peoria.w++; else if (tie) peoria.t++; else peoria.l++; }
+
+              allMatches.push({
+                label: shortName(ev.name) + " " +
+                  (m.description || "").replace("Qualification ", "Q"),
+                score: my,
+                auto: auto || 0,
+                win: win,
+                tie: tie
+              });
+            });
+          }
+
+          var scores = allMatches.map(function (m) { return m.score; });
+          var autos = allMatches.map(function (m) { return m.auto; });
+          var wins = allMatches.filter(function (m) { return m.win; }).length;
+
+          setText("recap-avg-score", scores.length ? round(avg(scores), 1) : "N/A");
+          setText("recap-best-score", scores.length ? Math.max.apply(null, scores) : "N/A");
+          setText("recap-win-rate", allMatches.length
+            ? round(wins / allMatches.length * 100, 1) + "%" : "N/A");
+          setText("recap-avg-auto", autos.length ? round(avg(autos), 1) : "N/A");
+          setText("recap-peoria-record", peoria.w + "-" + peoria.l + "-" + peoria.t);
+          setText("recap-state-record", state.w + "-" + state.l + "-" + state.t);
+
+          /* Chart */
+          if (typeof Chart !== "undefined" && allMatches.length) {
+            var ctx = document.getElementById("recapScoreTrendChart");
+            if (ctx) {
+              recapChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                  labels: allMatches.map(function (m) { return m.label; }),
+                  datasets: [{
+                    label: "Total Score",
+                    data: scores,
+                    tension: 0.25,
+                    borderColor: "#00857d",
+                    backgroundColor: "rgba(0,133,125,0.08)",
+                    fill: true
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  animation: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: {
+                      ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10, font: { size: 11 } }
+                    },
+                    y: { beginAtZero: true }
+                  }
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Recap stats error:", e);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadRecapStats);
+
+      /* Outreach carousel */
+      var carousel = document.getElementById("outreach-carousel");
+      if (carousel) {
+        var track = carousel.querySelector(".recap-carousel-track");
+        var slides = carousel.querySelectorAll(".recap-carousel-slide");
+        var idx = 0;
+
+        function showSlide(i) {
+          idx = (i + slides.length) % slides.length;
+          track.style.transform = "translateX(-" + (idx * 100) + "%)";
+        }
+
+        carousel.querySelector(".recap-carousel-prev").addEventListener("click", function () {
+          showSlide(idx - 1);
+        });
+        carousel.querySelector(".recap-carousel-next").addEventListener("click", function () {
+          showSlide(idx + 1);
+        });
+
+        /* Auto-advance every 4s, pause on hover */
+        var autoTimer = setInterval(function () { showSlide(idx + 1); }, 4000);
+        carousel.addEventListener("mouseenter", function () { clearInterval(autoTimer); });
+        carousel.addEventListener("mouseleave", function () {
+          autoTimer = setInterval(function () { showSlide(idx + 1); }, 4000);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

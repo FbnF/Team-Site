@@ -291,8 +291,9 @@
 .post-stats {
   max-width: 800px;
   margin: 2rem auto 0;
+  padding-inline: clamp(1rem, 3vw, 2rem);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
@@ -319,6 +320,160 @@
   color: #111827;
 }
 
+/* Floating images within blog content */
+.recap-img-float {
+  margin-bottom: 1rem;
+}
+
+.recap-img-float img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+  display: block;
+}
+
+.recap-img-right {
+  float: right;
+  width: 45%;
+  margin-left: 1.5rem;
+}
+
+.recap-img-left {
+  float: left;
+  width: 45%;
+  margin-right: 1.5rem;
+}
+
+/* Clear floats between sections */
+.blog-post-content {
+  clear: both;
+}
+
+/* Recap author headshots row */
+.recap-authors {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recap-headshot-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.recap-headshot-row img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e7e7e7;
+  transition: transform 120ms ease;
+}
+
+.recap-headshot-row img:hover {
+  transform: scale(1.15);
+}
+
+/* Recap stats wrapper (reuses insight-card from style.css) */
+.recap-stats-section {
+  max-width: 800px;
+  margin: 2rem auto 0;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+/* Recap chart */
+.recap-chart-wrap {
+  max-width: 800px;
+  margin: 2rem auto 0;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+.recap-chart-canvas-wrap {
+  position: relative;
+  height: 300px;
+}
+
+/* Looping video in float */
+.recap-video {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+  display: block;
+}
+
+/* Outreach carousel */
+.recap-carousel {
+  position: relative;
+  max-width: 800px;
+  margin: 1.5rem auto 1.5rem;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #e7e7e7;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.recap-carousel-track {
+  display: flex;
+  transition: transform 400ms ease;
+}
+
+.recap-carousel-slide {
+  min-width: 100%;
+  position: relative;
+}
+
+.recap-carousel-slide img {
+  width: 100%;
+  display: block;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.recap-carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.55));
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.recap-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 120ms ease;
+  z-index: 2;
+}
+
+.recap-carousel-btn:hover {
+  background: #fff;
+}
+
+.recap-carousel-prev {
+  left: 0.6rem;
+}
+
+.recap-carousel-next {
+  right: 0.6rem;
+}
+
 /* ---------- */
 /* RESPONSIVE */
 /* ---------- */
@@ -326,6 +481,19 @@
 @media (max-width: 900px) {
   .post-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recap-stats-section .insights-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recap-img-right,
+  .recap-img-left {
+    float: none;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 1.25rem;
   }
 }
 
@@ -349,6 +517,17 @@
     font-size: clamp(1.8rem, 6vw, 2.3rem);
   }
 
+  .recap-carousel-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+  }
+
+  .recap-carousel-caption {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+  }
+
   .blog-post-meta {
     font-size: 0.94rem;
   }
@@ -366,6 +545,11 @@
 
   .blog-post-image-wrap {
     margin-top: 1.25rem;
+  }
+
+  .recap-headshot-row img {
+    width: 30px;
+    height: 30px;
   }
 }
 
@@ -390,7 +574,20 @@
     grid-template-columns: 1fr;
   }
 
+  .recap-stats-section .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
   .blog-post-content {
     font-size: 0.96rem;
+  }
+
+  .recap-chart-canvas-wrap {
+    height: 220px;
+  }
+
+  .recap-headshot-row img {
+    width: 28px;
+    height: 28px;
   }
 }

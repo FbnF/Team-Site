@@ -1,34 +1,239 @@
-/* Grid container for team members */
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 2rem;
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+/* ============================================================
+   TEAM PAGE  —  v3 redesign
+   ============================================================ */
+
+/* ── HERO ── */
+.team-hero {
+  background: linear-gradient(135deg, #0a2e2b 0%, #00857d 50%, #b7edef 100%);
+  padding: 5rem 2rem 4rem;
   text-align: center;
+  color: #fff;
 }
 
-/* Individual team member card */
-.team-member {
-  max-width: 250px;
+.team-hero-inner {
+  max-width: 680px;
   margin: 0 auto;
 }
 
-.team-member img {
+.team-hero-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  margin-bottom: 1.2rem;
+}
+
+.team-hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.6rem;
+}
+
+.team-hero p {
+  font-size: 1.15rem;
+  opacity: 0.88;
+  line-height: 1.5;
+}
+
+.team-hero p strong {
+  color: #fff;
+}
+
+/* ── SECTIONS ── */
+.team-section {
+  padding: 3.5rem 2rem 4rem;
+}
+
+.team-section--alt {
+  background: #f7fafa;
+}
+
+.team-shell {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+/* Section title with centered line */
+.team-section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 2.5rem;
+}
+
+.team-section-title::before,
+.team-section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #d1d5db;
+}
+
+/* ── ROSTER GRID ── */
+.team-roster {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem 2rem;
+}
+
+/* ── MEMBER CARD ── */
+.member {
+  width: 150px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.member:hover {
+  transform: translateY(-6px);
+}
+
+/* Circle photo */
+.member-photo {
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 0.8rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e5e7eb;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.member:hover .member-photo {
+  border-color: #00857d;
+  box-shadow: 0 0 0 4px rgba(0, 133, 125, 0.15);
+}
+
+.member-photo img {
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: block;
 }
 
-.team-member h3 {
-  margin: 0.75rem 0 0.25rem;
-  font-size: 1.1rem;
+/* Name */
+.member-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.35rem;
 }
 
-.team-member p {
-  color: #555;
-  font-size: 0.9rem;
+/* Roles list */
+.member-roles {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.member-roles li {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+/* Coach role color */
+.member--coach .member-roles li {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+/* ── ACCOLADE BADGE ── */
+.member-badge {
+  display: inline-block;
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.member-badge::before {
+  content: "\2605 ";
+}
+
+/* ── ALUMNI ── */
+.member-note {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .team-hero {
+    padding: 3.5rem 1.5rem 3rem;
+  }
+
+  .team-hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .team-section {
+    padding: 2.5rem 1rem 3rem;
+  }
+
+  .team-roster {
+    gap: 2rem 1.2rem;
+  }
+
+  .member {
+    width: 120px;
+  }
+
+  .member-photo {
+    width: 105px;
+    height: 105px;
+  }
+
+  .member-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .team-roster {
+    gap: 1.5rem 0.8rem;
+  }
+
+  .member {
+    width: 105px;
+  }
+
+  .member-photo {
+    width: 88px;
+    height: 88px;
+  }
+
+  .member-roles li {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.35rem;
+  }
 }
