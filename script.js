@@ -131,6 +131,23 @@
 
       window.toggleMenu = () =>
         placeholder.querySelector(".nav-menu")?.classList.toggle("open");
+
+      // Mobile: tap on dropdown trigger toggles submenu
+      placeholder.querySelectorAll(".dropdown > a").forEach((trigger) => {
+        trigger.addEventListener("click", (e) => {
+          if (window.innerWidth <= 768) {
+            e.preventDefault();
+            trigger.closest(".dropdown")?.classList.toggle("open");
+          }
+        });
+      });
+
+      // Highlight the active nav link based on current page
+      const currentPath = window.location.pathname;
+      placeholder.querySelectorAll(".nav-menu a[href]").forEach((a) => {
+        const linkPath = new URL(a.href).pathname;
+        if (linkPath === currentPath) a.classList.add("active");
+      });
     } catch (err) {
       console.error("Navbar error:", err);
     }

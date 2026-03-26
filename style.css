@@ -242,6 +242,44 @@ canvas {
     font-size: 0.9rem;
 }
 
+.hero-cta-links {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-link-btn {
+    display: inline-block;
+    padding: 0.55rem 1.25rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.hero-link-btn:hover { transform: translateY(-2px); }
+
+.hero-link-btn--filled {
+    background: #00857d;
+    color: #ffffff;
+    border: 1.5px solid #00857d;
+}
+.hero-link-btn--filled:hover {
+    background: #006e67;
+    border-color: #006e67;
+}
+
+.hero-link-btn--outline {
+    background: transparent;
+    color: #00857d;
+    border: 1.5px solid #00857d;
+}
+.hero-link-btn--outline:hover {
+    background: #00857d;
+    color: #ffffff;
+}
+
 /* --- LATEST UPDATES --- */
 .hero-latest {
     width: 100%;
