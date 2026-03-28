@@ -129,8 +129,12 @@
           a.href = resolveFromRoot(href.slice(2));
       });
 
-      window.toggleMenu = () =>
-        placeholder.querySelector(".nav-menu")?.classList.toggle("open");
+      window.toggleMenu = () => {
+        const menu = placeholder.querySelector(".nav-menu");
+        const toggle = placeholder.querySelector(".menu-toggle");
+        menu?.classList.toggle("open");
+        toggle?.classList.toggle("open");
+      };
 
       // Mobile: tap on dropdown trigger toggles submenu
       placeholder.querySelectorAll(".dropdown > a").forEach((trigger) => {

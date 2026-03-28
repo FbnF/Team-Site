@@ -176,40 +176,71 @@
    Responsive (Mobile)
    =================================== */
 @media (max-width: 768px) {
+  .nav-container {
+    padding: 0.5rem 1rem;
+  }
+
   .menu-toggle { display: flex; }
+
+  /* Animate hamburger → X when open */
+  .menu-toggle.open div:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .menu-toggle.open div:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.open div:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+  .menu-toggle div {
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
 
   .nav-menu {
     display: none;
     flex-direction: column;
     background: #ffffff;
     position: absolute;
-    top: calc(100% + 3px);
-    right: 1rem;
-    width: 230px;
-    border: 1px solid #e5e7eb;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
     border-top: 3px solid #00857d;
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     z-index: 1001;
-    padding: 0.4rem 0;
+    padding: 0.25rem 0 0.75rem;
     gap: 0;
+    box-sizing: border-box;
   }
 
   /* Show when JS toggles either class */
   .nav-menu.open,
   .nav-menu.active { display: flex; }
 
-  .nav-menu li { margin: 0; }
+  .nav-menu li { margin: 0; width: 100%; }
 
   .nav-menu > li > a {
     border-radius: 0;
-    padding: 0.65rem 1.2rem;
+    padding: 0.75rem 1.25rem;
     border-bottom: 1px solid #f3f4f6;
     font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   .nav-menu > li:last-child > a { border-bottom: none; }
 
   .nav-menu > li > a::after { display: none; }
+
+  /* CTA buttons full-width on mobile */
+  .nav-cta {
+    margin: 0.2rem 1rem !important;
+    width: calc(100% - 2rem) !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.92rem !important;
+  }
 
   /* Mobile dropdown is click/tap driven; reposition as static list */
   .dropdown-content {
@@ -219,16 +250,20 @@
     border-top: 1px solid #f3f4f6;
     border-radius: 0;
     box-shadow: none;
-    background: #f9fafb;
+    background: #f5faf9;
     min-width: 0;
+    padding-top: 0;
   }
   .dropdown.open .dropdown-content { display: block; }
   .dropdown-content a {
-    padding-left: 2rem;
-    font-size: 0.88rem;
-    border-bottom: 1px solid #efefef;
+    padding: 0.65rem 1.25rem 0.65rem 2rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #edf2f1;
+    color: #00857d;
+    font-weight: 500;
   }
-  .dropdown-content a:hover { padding-left: 2.3rem; }
+  .dropdown-content a:last-child { border-bottom: none; }
+  .dropdown-content a:hover { padding-left: 2.3rem; background: rgba(0,133,125,0.06); }
 
   /* Optional: hide any fixed scroll nav on mobile */
   .scroll-nav { display: none; }
