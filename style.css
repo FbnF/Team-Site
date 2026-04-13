@@ -296,7 +296,7 @@ canvas {
 
 .latest-list {
     position: relative;
-    height: 400px;
+    height: 280px;
 }
 
 .latest-card {
@@ -313,10 +313,10 @@ canvas {
 
 .latest-card img {
     width: 100%;
-    height: 180px;
+    height: 140px;
     object-fit: cover;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .card-caption {
@@ -546,6 +546,175 @@ canvas {
     text-decoration: underline;
 }
 
+/* --- AUTONOMOUS PATH VISUALIZER --- */
+.auto-viewer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.auto-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.auto-nav-btn {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid #d1d5db;
+    background: #ffffff;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #374151;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auto-nav-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.auto-title-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.auto-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.auto-routine-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #111827;
+    white-space: nowrap;
+}
+
+.auto-alliance-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+}
+
+.auto-alliance-tag--red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.auto-alliance-tag--blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.auto-routine-desc {
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+
+.auto-routine-counter {
+    font-size: 0.7rem;
+    color: #9ca3af;
+}
+
+.auto-canvas-container {
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Hero-side auto viewer wrapper ── */
+.hero-auto {
+    margin-top: 0.75rem;
+}
+
+.auto-canvas-container canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.auto-footer {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.auto-btns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.auto-ctrl-btn {
+    padding: 0.45rem 1.15rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: #111827;
+    color: #ffffff;
+    transition: background 0.15s;
+}
+
+.auto-ctrl-btn:hover {
+    background: #374151;
+}
+
+.auto-ctrl-btn--secondary {
+    background: transparent;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
+}
+
+.auto-ctrl-btn--secondary:hover {
+    background: #f3f4f6;
+}
+
+.auto-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.74rem;
+    color: #6b7280;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 1024px) {
     .compact-feature-grid,
@@ -687,8 +856,22 @@ canvas {
         align-items: flex-start;
     }
 
-    canvas {
+    canvas:not(#auto-canvas) {
         height: 240px !important;
+    }
+
+    #auto-canvas {
+        height: auto !important;
+        width: 100% !important;
+    }
+
+    .auto-routine-name {
+        white-space: normal;
+        font-size: 0.92rem;
+    }
+
+    .hero-auto {
+        margin-top: 1.5rem;
     }
 }
 
@@ -705,7 +888,12 @@ canvas {
         min-width: 100%;
     }
 
-    canvas {
+    canvas:not(#auto-canvas) {
         height: 220px !important;
+    }
+
+    #auto-canvas {
+        height: auto !important;
+        width: 100% !important;
     }
 }

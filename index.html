@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="navbar.css?v=2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js" defer></script>
+  <script src="auto-visualizer.js" defer></script>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
@@ -78,6 +79,34 @@
         <div class="hero-latest">
           <div class="latest-heading">Latest Updates</div>
           <div id="updates" class="latest-list"></div>
+        </div>
+
+        <div class="hero-auto">
+          <div class="latest-heading">Autonomous Paths</div>
+          <div class="auto-viewer">
+            <div class="auto-header">
+              <button id="auto-prev" class="auto-nav-btn" aria-label="Previous routine">&#8592;</button>
+              <div class="auto-title-block">
+                <div class="auto-title-row">
+                  <span id="auto-name" class="auto-routine-name">SmallRedSimple</span>
+                  <span id="auto-alliance-tag" class="auto-alliance-tag auto-alliance-tag--red">Red</span>
+                </div>
+                <span id="auto-counter" class="auto-routine-counter">1 / 16</span>
+              </div>
+              <button id="auto-next" class="auto-nav-btn" aria-label="Next routine">&#8594;</button>
+            </div>
+
+            <div class="auto-canvas-container">
+              <canvas id="auto-canvas"></canvas>
+            </div>
+
+            <div class="auto-legend">
+              <span class="legend-item"><span class="legend-dot" style="background:#f05050"></span>Red</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#4d90f0"></span>Blue</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#34d399"></span>Intake</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#fb923c"></span>Launch</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
