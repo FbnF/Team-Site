@@ -664,7 +664,7 @@
       t => t.totalMatches ? t.winRate : 0,
       t => t.totalMatches ? t.avgAuto : 0
     ];
-    const axisLabels = ["Avg\nScore", "Best\nScore", "Win\nRate", "Avg\nAuto"];
+    const axisLabels = ["Avg Score", "Best Score", "Win Rate", "Avg Auto"];
 
     // Per-axis normalization so all teams fit 0-100
     const normData = allTeams.map(() => []);
@@ -679,8 +679,37 @@
       });
     }
 
+    const valueLabelPlugin = {
+      id: "valueLabel",
+      afterDatasetsDraw(chart) {
+        const { ctx, scales, data } = chart;
+        if (!scales.r) return;
+        const r = scales.r;
+        data.datasets.forEach((ds, di) => {
+          const meta = chart.getDatasetMeta(di);
+          meta.data.forEach((pt, idx) => {
+            const raw = rawData[di][idx];
+            const unit = idx === 2 ? "%" : "";
+            const dx = pt.x - r.xCenter;
+            const dy = pt.y - r.yCenter;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const ox = pt.x + (dx / len) * 16;
+            const oy = pt.y + (dy / len) * 16;
+            ctx.save();
+            ctx.font = "bold 10px system-ui, sans-serif";
+            ctx.fillStyle = TEAM_COLORS[di];
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(raw + unit, ox, oy);
+            ctx.restore();
+          });
+        });
+      }
+    };
+
     compareRadarChart = new Chart(radarCtx, {
       type: "radar",
+      plugins: [valueLabelPlugin],
       data: {
         labels: axisLabels,
         datasets: allTeams.map((t, i) => ({
@@ -692,15 +721,15 @@
           borderWidth: 2.5,
           pointBackgroundColor: TEAM_COLORS[i],
           pointBorderColor: "#fff",
-          pointBorderWidth: 2,
-          pointRadius: 6,
-          pointHoverRadius: 9
+          pointBorderWidth: 1.5,
+          pointRadius: 3,
+          pointHoverRadius: 5
         }))
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { left: 45, right: 45, top: 10, bottom: 10 } },
+        layout: { padding: { left: 10, right: 10, top: 10, bottom: 10 } },
         animation: { duration: 600, easing: "easeOutQuart" },
         plugins: {
           legend: { display: false },
@@ -726,14 +755,8 @@
         scales: {
           r: {
             min: 0,
-            max: 100,
-            ticks: {
-              display: true,
-              stepSize: 25,
-              backdropColor: "transparent",
-              color: "#9ca3af",
-              font: { size: 9 }
-            },
+            suggestedMax: 120,
+            ticks: { display: false, backdropColor: "transparent", color: "transparent" },
             grid: {
               color: "rgba(100,116,139,0.2)",
               lineWidth: 1
@@ -745,7 +768,8 @@
             pointLabels: {
               color: "#374151",
               font: { size: 11, weight: "700" },
-              padding: 20
+              padding: 14,
+              callback: (label, index) => (index === 1 || index === 3) ? label.split(" ") : label
             }
           }
         }

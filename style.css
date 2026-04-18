@@ -898,9 +898,9 @@ canvas {
 }
 
 .compare-radar-wrap {
-    flex: 0 0 360px;
+    flex: 0 0 420px;
     border-left: 1px solid #e5e7eb;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -909,7 +909,7 @@ canvas {
 
 .compare-radar-wrap canvas {
     width: 100% !important;
-    height: 320px !important;
+    height: 380px !important;
 }
 
 /* --- COMPARE SLOTS --- */
@@ -1147,8 +1147,8 @@ canvas {
 
     .compare-radar-wrap canvas {
         width: 100% !important;
-        height: 300px !important;
-        max-width: 400px;
+        height: 340px !important;
+        max-width: 440px;
         margin: 0 auto;
         display: block;
     }

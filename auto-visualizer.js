@@ -452,6 +452,8 @@
   }
 
   // ─── ANIMATION STATE ──────────────────────────────────────────────────────────
+  const SHOOT_PAUSE_MS = 1800;     // ms the robot pauses while shooting artifacts
+
   let idx             = 0;
   let animId          = null;
   let resumeT         = 0;
@@ -462,6 +464,8 @@
   let shootFlashes    = [];        // [{cx, cy, startMs}] – expanding artifacts on canvas
   let triggeredShoots = new Set(); // waypoint indices already flashed this run
   let autoAdvanceId   = null;      // setTimeout id for carousel auto-advance
+  let isPausedAtShoot = false;     // true while holding at a shoot waypoint
+  let shootPauseEndMs = 0;         // performance.now() timestamp when pause ends
 
   function currentT() {
     if (playStartMs === null) return resumeT;
@@ -507,24 +511,44 @@
 
   // ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
   function animLoop() {
-    const t   = currentT();
     const now = performance.now();
-    const r   = ROUTINES[idx];
 
-    // Trigger shoot flash the first time animation crosses each shoot waypoint
-    r.wps.forEach((wp, i) => {
-      if (i === 0 || wp.ev !== 'shoot' || triggeredShoots.has(i)) return;
-      if (cachedSegs[i - 1].t1 <= t + 0.005) {
-        triggeredShoots.add(i);
-        const [cx, cy] = fc(wp.x, wp.y);
-        shootFlashes.push({ cx, cy, startMs: now });
-      }
-    });
+    // Expire an active shoot pause and resume movement
+    if (isPausedAtShoot && now >= shootPauseEndMs) {
+      isPausedAtShoot = false;
+      playStartMs     = now;
+    }
+
+    const t = currentT();
+    const r = ROUTINES[idx];
+
+    // Trigger shoot flash + pause the first time animation crosses each shoot waypoint
+    if (!isPausedAtShoot) {
+      r.wps.forEach((wp, i) => {
+        if (isPausedAtShoot) return; // already pausing on an earlier waypoint this frame
+        if (i === 0 || wp.ev !== 'shoot' || triggeredShoots.has(i)) return;
+        if (cachedSegs[i - 1].t1 <= t + 0.005) {
+          triggeredShoots.add(i);
+          const [cx, cy] = fc(wp.x, wp.y);
+          shootFlashes.push({ cx, cy, startMs: now });
+          // Snap robot to waypoint and hold
+          resumeT         = cachedSegs[i - 1].t1;
+          playStartMs     = null;
+          isPausedAtShoot = true;
+          shootPauseEndMs = now + SHOOT_PAUSE_MS;
+        }
+      });
+    }
 
     // Prune stale flashes
     shootFlashes = shootFlashes.filter(f => (now - f.startMs) < 850);
 
-    render(t);
+    render(isPausedAtShoot ? resumeT : t);
+
+    if (isPausedAtShoot) {
+      animId = requestAnimationFrame(animLoop);
+      return;
+    }
 
     if (t < 1) {
       animId = requestAnimationFrame(animLoop);
@@ -551,6 +575,7 @@
       resumeT     = Math.min(resumeT + (performance.now() - playStartMs) / animDurMs, 1);
       playStartMs = null;
     }
+    isPausedAtShoot = false;
     playing = false;
   }
 
@@ -585,6 +610,7 @@
     resumeT         = 0;
     triggeredShoots = new Set();
     shootFlashes    = [];
+    isPausedAtShoot = false;
     updateInfo();
     render(0);
     startAnim();
