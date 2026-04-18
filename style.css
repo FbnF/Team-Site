@@ -715,6 +715,305 @@ canvas {
     flex-shrink: 0;
 }
 
+/* --- COMPARISON SECTION --- */
+.compare-search {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.compare-input {
+    flex: 1 1 220px;
+    max-width: 320px;
+    padding: 0.65rem 1rem;
+    font-size: 1rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+}
+
+.compare-input:focus {
+    border-color: #111827;
+}
+
+.compare-input::-webkit-outer-spin-button,
+.compare-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.compare-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.compare-btn {
+    padding: 0.65rem 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: #111827;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.compare-btn:hover {
+    background: #374151;
+}
+
+.compare-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.compare-error {
+    font-size: 0.9rem;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.compare-loading {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.compare-table {
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.compare-header-row,
+.compare-row {
+    display: grid;
+    align-items: center;
+    min-width: 0;
+}
+
+.compare-stats-table {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.compare-header-row {
+    background: #f9fafb;
+    border-bottom: 1px solid #ececec;
+}
+
+.compare-row {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.compare-row:last-child {
+    border-bottom: none;
+}
+
+.compare-hcell {
+    padding: 0.65rem 1rem;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    min-width: 90px;
+}
+
+.compare-hcell.compare-val-col {
+    text-align: center;
+}
+
+.compare-cell {
+    padding: 0.8rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    transition: background 0.15s, color 0.15s;
+    min-width: 90px;
+}
+
+.compare-cell.compare-val-col {
+    text-align: center;
+}
+
+.compare-label-col {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.compare-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.compare-badge--us {
+    background: #111827;
+    color: #ffffff;
+}
+
+.compare-badge--them {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.compare-cell--winner {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.compare-cell--loser {
+    background: #fff8f8;
+    color: #b91c1c;
+}
+
+.compare-split {
+    display: flex;
+    align-items: stretch;
+}
+
+.compare-stats-table {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.compare-radar-wrap {
+    flex: 0 0 360px;
+    border-left: 1px solid #e5e7eb;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+.compare-radar-wrap canvas {
+    width: 100% !important;
+    height: 320px !important;
+}
+
+/* --- COMPARE SLOTS --- */
+.compare-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.compare-slot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 99px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 2px solid;
+    transition: opacity 0.15s;
+    max-width: 240px;
+}
+
+.compare-slot--us {
+    border-color: #111827;
+    background: #111827;
+    color: #ffffff;
+}
+
+.compare-slot--filled {
+    background: transparent;
+}
+
+.compare-slot--filled .slot-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+}
+
+.compare-slot--empty {
+    border-color: #d1d5db;
+    border-style: dashed;
+    color: #9ca3af;
+    font-weight: 600;
+    cursor: default;
+}
+
+.slot-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0 0 0.1rem;
+    color: inherit;
+    opacity: 0.65;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.slot-remove:hover {
+    opacity: 1;
+}
+
+/* --- HEAD-TO-HEAD --- */
+.h2h-container {
+    border-top: 1px solid #ececec;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+}
+
+.h2h-title {
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.h2h-section {
+    margin-bottom: 1rem;
+}
+
+.h2h-heading {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.h2h-chart-wrap {
+    position: relative;
+    height: 200px;
+    margin-bottom: 0.5rem;
+}
+
+.h2h-partners {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-top: 0.4rem;
+}
+
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 1024px) {
     .compact-feature-grid,
@@ -834,6 +1133,37 @@ canvas {
         grid-template-columns: 1fr;
     }
 
+    .compare-split {
+        flex-direction: column;
+    }
+
+    .compare-radar-wrap {
+        flex: none;
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+        width: 100%;
+    }
+
+    .compare-radar-wrap canvas {
+        width: 100% !important;
+        height: 300px !important;
+        max-width: 400px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .compare-hcell,
+    .compare-cell {
+        padding: 0.6rem 0.7rem;
+        font-size: 0.82rem;
+        min-width: 80px;
+    }
+
+    .compare-cell.compare-val-col {
+        font-size: 0.88rem;
+    }
+
     .insight-card {
         min-height: 106px;
         padding: 1rem;
@@ -856,7 +1186,7 @@ canvas {
         align-items: flex-start;
     }
 
-    canvas:not(#auto-canvas) {
+    canvas:not(#auto-canvas):not(#compareRadarChart) {
         height: 240px !important;
     }
 

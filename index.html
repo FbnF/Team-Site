@@ -156,6 +156,38 @@
     </div>
   </section>
 
+  <section id="compare-section" class="content-section alt-section">
+    <div class="content-shell">
+      <div class="section-heading-wrap">
+        <p class="section-kicker">Team Comparison</p>
+        <h2 class="section-title">Compare with Another Team</h2>
+        <p class="section-subtitle">
+          Add up to 3 FTC teams to compare their 2025 season stats side-by-side with ours.
+        </p>
+      </div>
+
+      <div class="compare-search">
+        <input type="number" id="compare-team-input" class="compare-input"
+               placeholder="Enter a team number…" min="1" max="99999" />
+        <button id="compare-btn" class="compare-btn">Add Team</button>
+      </div>
+
+      <div id="compare-slots" class="compare-slots"></div>
+
+      <div id="compare-error" class="compare-error" hidden></div>
+      <div id="compare-loading" class="compare-loading" hidden>Fetching stats…</div>
+
+      <div id="compare-table" class="compare-table" hidden>
+        <div class="compare-split">
+          <div id="compare-stats-table" class="compare-stats-table"></div>
+          <div class="compare-radar-wrap">
+            <canvas id="compareRadarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="about-band" class="content-section">
     <div class="content-shell">
       <div class="section-heading-wrap">
@@ -198,7 +230,7 @@
         <h2 class="section-title">Performance Graphs</h2>
         <p class="section-subtitle">
           Two simple charts that show how our season has progressed.
-        </p>
+        </p>x
       </div>
 
       <div class="charts-grid charts-grid-compact">
