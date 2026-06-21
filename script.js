@@ -6,6 +6,9 @@
     season: "2025"
   };
 
+  // Replace with your Cloudflare Web Analytics token.
+  const CLOUDFLARE_ANALYTICS_TOKEN = "8b8eef7d668245e7b746314e741c8691";
+
   const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
   const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
 
@@ -44,6 +47,23 @@
     const scriptUrl = getScriptUrl();
     if (!scriptUrl) return relPath;
     return new URL(relPath, new URL(".", scriptUrl)).href;
+  }
+
+  function injectCloudflareAnalytics() {
+    if (!CLOUDFLARE_ANALYTICS_TOKEN || CLOUDFLARE_ANALYTICS_TOKEN === "PASTE_CLOUDFLARE_TOKEN_HERE") {
+      return;
+    }
+
+    if (document.querySelector('script[data-cf-beacon]')) return;
+
+    const beacon = document.createElement("script");
+    beacon.defer = true;
+    beacon.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    beacon.setAttribute(
+      "data-cf-beacon",
+      JSON.stringify({ token: CLOUDFLARE_ANALYTICS_TOKEN })
+    );
+    document.head.appendChild(beacon);
   }
 
   function createStats() {
@@ -973,6 +993,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    injectCloudflareAnalytics();
     injectNavbar();
     loadCarousel();
     loadAwards();
