@@ -120,6 +120,10 @@
         <p class="section-subtitle">
           A quick look at our strongest public-facing season data.
         </p>
+        <p id="stats-status" class="section-subtitle" role="status">Loading season statistics...</p>
+        <p class="section-subtitle">
+          Alliance scores and results from <a href="https://ftcscout.org/teams/21592">FTC Scout</a>.
+        </p>
       </div>
 
       <div id="insights-grid" class="insights-grid">
@@ -156,13 +160,24 @@
     </div>
   </section>
 
+  <section id="schedule" class="content-section alt-section">
+    <div class="content-shell">
+      <div class="section-heading-wrap">
+        <p class="section-kicker">Competition Schedule</p>
+        <h2 class="section-title">Upcoming Events</h2>
+        <p id="schedule-status" class="section-subtitle" role="status">Loading our schedule from FTC Scout...</p>
+      </div>
+      <div id="upcoming-events" class="feature-grid compact-feature-grid"></div>
+    </div>
+  </section>
+
   <section id="compare-section" class="content-section alt-section">
     <div class="content-shell">
       <div class="section-heading-wrap">
         <p class="section-kicker">Team Comparison</p>
         <h2 class="section-title">Compare with Another Team</h2>
         <p class="section-subtitle">
-          Add up to 3 FTC teams to compare their 2025 season stats side-by-side with ours.
+          Add up to 3 FTC teams to compare their <span id="compare-season">current</span> season stats side-by-side with ours.
         </p>
       </div>
 
