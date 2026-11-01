@@ -1,16 +1,16 @@
 (function () {
+  const now = new Date();
+  // FTC seasons use their starting year; roll over on September 1 (UTC).
+  const season = now.getUTCFullYear() - (now.getUTCMonth() < 8 ? 1 : 0);
   const FTC_CONFIG = {
-    user: "Kimng",
-    key: "9B427DDE-72D8-46FA-95DB-4AF53CF939E6",
     team: "21592",
-    season: "2025"
+    season: String(season)
   };
 
   // Replace with your Cloudflare Web Analytics token.
   const CLOUDFLARE_ANALYTICS_TOKEN = "8b8eef7d668245e7b746314e741c8691";
 
-  const AUTH_B64 = btoa(`${FTC_CONFIG.user}:${FTC_CONFIG.key}`);
-  const BASE_URL = "https://ftc-api.firstinspires.org/v2.0";
+  const BASE_URL = "https://api.ftcscout.org/rest/v1";
 
   let scoreTrendChart = null;
   let eventAvgChart = null;
@@ -28,11 +28,62 @@
 
   let compareTeams = []; // [{number, name, stats}], max 3
 
-  function proxiedFetch(url) {
-    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
-    return fetch(proxyUrl, {
-      headers: { Authorization: "Basic " + AUTH_B64 }
+  async function scoutFetch(path) {
+    const response = await fetch(`${BASE_URL}/${path}`);
+    if (!response.ok) {
+      throw new Error(`FTC Scout API returned ${response.status} for ${path}`);
+    }
+    return response.json();
+  }
+
+  async function loadTeamEvents(teamNumber) {
+    const participations = await scoutFetch(`teams/${teamNumber}/events/${FTC_CONFIG.season}`);
+    if (!Array.isArray(participations)) {
+      throw new Error("FTC Scout returned an invalid team event list.");
+    }
+    const events = await Promise.all(participations.map(async (participation) => {
+      const event = await scoutFetch(
+        `events/${FTC_CONFIG.season}/${encodeURIComponent(participation.eventCode)}`
+      );
+      if (!event.code || typeof event.name !== "string" ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(event.start) ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(event.end)) {
+        throw new Error("FTC Scout returned invalid event details.");
+      }
+      return { ...event, rank: participation.stats?.rank ?? null };
+    }));
+    return events.sort((a, b) => a.start.localeCompare(b.start));
+  }
+
+  function renderSchedule(events) {
+    const root = document.getElementById("upcoming-events");
+    if (!root) return;
+    root.replaceChildren();
+    const today = new Date().toISOString().slice(0, 10);
+    const upcoming = events.filter((event) => event.end >= today);
+    setText("schedule-status", upcoming.length ? "" : "No upcoming events listed on FTC Scout yet.");
+    const dateFormat = new Intl.DateTimeFormat("en-US", {
+      month: "short", day: "numeric", year: "numeric", timeZone: "UTC"
     });
+
+    for (const event of upcoming) {
+      const card = document.createElement("article");
+      card.className = "feature-card";
+      const heading = document.createElement("h3");
+      const link = document.createElement("a");
+      link.href = `https://ftcscout.org/events/${FTC_CONFIG.season}/${encodeURIComponent(event.code)}`;
+      link.textContent = event.name;
+      heading.appendChild(link);
+      const dates = document.createElement("p");
+      const start = dateFormat.format(new Date(`${event.start}T00:00:00Z`));
+      dates.textContent = event.start === event.end
+        ? start
+        : `${start} - ${dateFormat.format(new Date(`${event.end}T00:00:00Z`))}`;
+      const location = document.createElement("p");
+      location.textContent = [event.venue, event.city, event.state].filter(Boolean).join(", ");
+      card.append(heading, dates, location);
+      root.appendChild(card);
+    }
   }
 
   function getScriptUrl() {
@@ -86,11 +137,6 @@
       name.includes("peoria meet") ||
       name.includes("peoria western league tournament")
     );
-  }
-
-  function isQualificationMatch(match) {
-    const desc = (match.description || "").toLowerCase();
-    return desc.includes("qualification");
   }
 
   function formatMatchLabel(description) {
@@ -352,7 +398,8 @@
     }
   }
 
-  async function computeTeamStats(teamNumber) {
+  async function computeTeamStats(teamNumber, events) {
+    if (!events) events = await loadTeamEvents(teamNumber);
     const peoriaStats = createStats();
     const stateStats = createStats();
     const allMatches = [];
@@ -360,65 +407,52 @@
     let bestScoreMatch = null;
     const eventChartSummaries = [];
 
-    const evRes = await proxiedFetch(
-      `${BASE_URL}/${FTC_CONFIG.season}/events?teamNumber=${teamNumber}`
-    );
-    if (!evRes.ok) throw new Error(`Events API returned ${evRes.status}`);
-
-    const evData = await evRes.json();
-    const events = (evData.events || []).sort(
-      (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
-    );
-
-    if (events.length === 0) {
-      throw new Error(`No events found for team ${teamNumber} in the ${FTC_CONFIG.season} season.`);
-    }
-
+    const today = new Date().toISOString().slice(0, 10);
     for (const event of events) {
-      const [mRes, rRes] = await Promise.all([
-        proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/matches/${event.code}?teamNumber=${teamNumber}`),
-        proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/rankings/${event.code}?teamNumber=${teamNumber}`)
-      ]);
-
-      const mData = await mRes.json();
-
-      let eventRank = null;
-      try {
-        const rData = await rRes.json();
-        if (rData.rankings?.[0]) {
-          eventRank = rData.rankings[0].rank;
-        }
-      } catch (err) {
-        // ignore missing rankings
+      if (event.start > today || event.remote) continue;
+      const matches = await scoutFetch(
+        `events/${FTC_CONFIG.season}/${encodeURIComponent(event.code)}/matches`
+      );
+      if (!Array.isArray(matches)) {
+        throw new Error(`FTC Scout returned invalid matches for ${event.code}.`);
       }
+      matches.sort((a, b) => a.id - b.id);
 
+      const eventRank = event.rank;
       const eventName = event.name || "";
       const eventIsState = isStateEvent(eventName);
       const eventIsPeoria = isPeoriaEvent(eventName);
 
-      if (eventIsState && eventRank !== null && stateStats.rank === null) {
+      if (eventIsState && eventRank !== null) {
         stateStats.rank = eventRank;
       }
 
-      if (eventIsPeoria && eventRank !== null && peoriaStats.rank === null) {
+      if (eventIsPeoria && eventRank !== null) {
         peoriaStats.rank = eventRank;
       }
 
-      const qualificationMatches = (mData.matches || [])
-        .filter((m) => {
-          if (m.scoreRedFinal === null || m.scoreBlueFinal === null) return false;
-          return isQualificationMatch(m);
-        })
+      const qualificationMatches = matches
+        .filter((m) => m.hasBeenPlayed && m.tournamentLevel === "Quals" && m.scores)
         .map((m) => {
           const myTeam = (m.teams || []).find(
             (t) => String(t.teamNumber) === String(teamNumber)
           );
           if (!myTeam) return null;
 
-          const isRed = myTeam.station.includes("Red");
-          const myScore = isRed ? m.scoreRedFinal : m.scoreBlueFinal;
-          const oppScore = isRed ? m.scoreBlueFinal : m.scoreRedFinal;
-          const auto = isRed ? m.scoreRedAuto : m.scoreBlueAuto;
+          if (myTeam.alliance !== "Red" && myTeam.alliance !== "Blue") {
+            throw new Error(`FTC Scout returned an invalid alliance for match ${m.id}.`);
+          }
+          const isRed = myTeam.alliance === "Red";
+          const myAllianceScores = isRed ? m.scores.red : m.scores.blue;
+          const opponentScores = isRed ? m.scores.blue : m.scores.red;
+          const myScore = myAllianceScores?.totalPoints;
+          const oppScore = opponentScores?.totalPoints;
+          const auto = myAllianceScores?.autoPoints;
+          if (![myScore, oppScore, auto].every(Number.isFinite)) {
+            throw new Error(`FTC Scout returned invalid scores for match ${m.id}.`);
+          }
+          // REST omits the computed description getter; qualification IDs end in the match number.
+          const description = `Qualification ${m.id % 1000}`;
 
           const win = myScore > oppScore;
           const tie = myScore === oppScore;
@@ -435,9 +469,9 @@
 
           const matchRecord = {
             eventName: event.name,
-            label: formatMatchLabel(m.description),
-            chartLabel: `${shortEventName(event.name)} ${formatMatchLabel(m.description)}`,
-            auto: auto ?? 0,
+            label: formatMatchLabel(description),
+            chartLabel: `${shortEventName(event.name)} ${formatMatchLabel(description)}`,
+            auto,
             myScore,
             oppScore,
             win,
@@ -448,11 +482,11 @@
           rawMatchRecords.push({
             eventCode: event.code,
             eventName: event.name,
-            description: m.description,
-            redTeams: (m.teams || []).filter(t => t.station.includes("Red")).map(t => +t.teamNumber),
-            blueTeams: (m.teams || []).filter(t => t.station.includes("Blue")).map(t => +t.teamNumber),
-            redScore: m.scoreRedFinal,
-            blueScore: m.scoreBlueFinal,
+            description,
+            redTeams: (m.teams || []).filter(t => t.alliance === "Red").map(t => +t.teamNumber),
+            blueTeams: (m.teams || []).filter(t => t.alliance === "Blue").map(t => +t.teamNumber),
+            redScore: m.scores.red.totalPoints,
+            blueScore: m.scores.blue.totalPoints,
             myAlliance: isRed ? "red" : "blue",
             myScore,
             oppScore,
@@ -468,12 +502,13 @@
         })
         .filter(Boolean);
 
-      const eventAvgScore = average(qualificationMatches.map((m) => m.myScore));
-      eventChartSummaries.push({
-        name: event.name,
-        shortName: shortEventName(event.name),
-        avgScore: eventAvgScore || 0
-      });
+      if (qualificationMatches.length) {
+        eventChartSummaries.push({
+          name: event.name,
+          shortName: shortEventName(event.name),
+          avgScore: average(qualificationMatches.map((m) => m.myScore))
+        });
+      }
     }
 
     const totalMatches = allMatches.length;
@@ -508,8 +543,13 @@
   }
 
   async function fetchTelemetry() {
+    setText("stats-status", `Loading ${FTC_CONFIG.season}-${Number(FTC_CONFIG.season) + 1} season statistics...`);
+    let scheduleLoaded = false;
     try {
-      const stats = await computeTeamStats(FTC_CONFIG.team);
+      const events = await loadTeamEvents(FTC_CONFIG.team);
+      renderSchedule(events);
+      scheduleLoaded = true;
+      const stats = await computeTeamStats(FTC_CONFIG.team, events);
       ourCachedStats = stats;
 
       setText("peoria-rank", stats.peoriaStats.rank !== null ? `#${stats.peoriaStats.rank}` : "N/A");
@@ -533,9 +573,19 @@
       setText("state-record", stats.stateRecord);
 
       renderCharts(stats.allMatches, stats.eventChartSummaries);
+      setText(
+        "stats-status",
+        stats.totalMatches
+          ? ""
+          : "FTC Scout has no scored qualification matches for this season yet."
+      );
     } catch (e) {
       console.error("Telemetry error:", e);
       destroyCharts();
+      setText("stats-status", "Unable to load statistics from FTC Scout. Please try again later.");
+      if (!scheduleLoaded) {
+        setText("schedule-status", "Unable to load the schedule from FTC Scout. Please try again later.");
+      }
 
       [
         "peoria-rank",
@@ -963,10 +1013,7 @@
     try {
       const [theirStats, teamName] = await Promise.all([
         computeTeamStats(teamNumber),
-        proxiedFetch(`${BASE_URL}/${FTC_CONFIG.season}/teams?teamNumber=${teamNumber}`)
-          .then(r => r.ok ? r.json() : null)
-          .then(d => { const t = d?.teams?.[0]; return t ? t.nameShort || t.nameFull || null : null; })
-          .catch(() => null)
+        scoutFetch(`teams/${teamNumber}`).then(team => team.name)
       ]);
 
       loadingEl.hidden = true;
@@ -993,6 +1040,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    setText("compare-season", `${FTC_CONFIG.season}-${Number(FTC_CONFIG.season) + 1}`);
     injectCloudflareAnalytics();
     injectNavbar();
     loadCarousel();
