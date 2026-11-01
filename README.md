@@ -13,6 +13,11 @@ Statistics use played qualification matches and alliance total/auto scores,
 not individual-team OPR. Only events with scored matches appear in the charts;
 future events appear in the schedule instead. Rankings use the latest available
 event in each category. Event dates display as listed, without timezone shifts.
+League records and the latest league rank use FTC Scout's `LeagueMeet` and
+`LeagueTournament` event types, not a hardcoded Peoria name filter. This also
+supports Central league meets and future league name changes.
+Charts use straight segments between actual match scores, full event names in
+tooltips, and centered event bars with scored-match counts.
 The schedule includes events through their listed end date, using today's UTC date.
 
 Statistics depend on FTC Scout having published scores. The homepage shows a

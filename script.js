@@ -131,12 +131,8 @@
     return name.includes("illinois championship");
   }
 
-  function isPeoriaEvent(eventName) {
-    const name = (eventName || "").toLowerCase();
-    return (
-      name.includes("peoria meet") ||
-      name.includes("peoria western league tournament")
-    );
+  function isLeagueEvent(event) {
+    return event.type === "LeagueMeet" || event.type === "LeagueTournament";
   }
 
   function formatMatchLabel(description) {
@@ -148,13 +144,7 @@
 
     if (name.includes("solomon division")) return "State";
     if (name.includes("illinois championship")) return "State";
-    if (name.includes("peoria western league tournament")) return "PWLT";
-    if (name.includes("peoria meet 1")) return "Meet 1";
-    if (name.includes("peoria meet 2")) return "Meet 2";
-    if (name.includes("peoria meet 3")) return "Meet 3";
-    if (name.includes("peoria meet 4")) return "Meet 4";
-
-    return eventName.length > 12 ? eventName.slice(0, 12) : eventName;
+    return eventName;
   }
 
   function average(values) {
@@ -334,7 +324,7 @@
 
     if (typeof Chart === "undefined") return;
 
-    const labels = allMatches.map((m) => m.chartLabel);
+    const labels = allMatches.map((m) => m.label);
     const scoreValues = allMatches.map((m) => m.myScore);
 
     const eventLabels = eventSummaries.map((e) => e.shortName);
@@ -370,13 +360,34 @@
           labels,
           datasets: [
             {
-              label: "Total Score",
+              label: "Alliance Total Score",
               data: scoreValues,
-              tension: 0.25
+              tension: 0,
+              pointRadius: 4
             }
           ]
         },
-        options: commonOptions
+        options: {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            tooltip: {
+              callbacks: {
+                title: (items) => items.length ? allMatches[items[0].dataIndex].chartLabel : ""
+              }
+            }
+          },
+          scales: {
+            x: {
+              ...commonOptions.scales.x,
+              title: { display: true, text: "Qualification matches (event order)" }
+            },
+            y: {
+              ...commonOptions.scales.y,
+              title: { display: true, text: "Alliance points" }
+            }
+          }
+        }
       });
     }
 
@@ -388,19 +399,46 @@
           labels: eventLabels,
           datasets: [
             {
-              label: "Average Score",
-              data: eventAvgValues
+              label: "Average Alliance Score",
+              data: eventAvgValues,
+              maxBarThickness: 100
             }
           ]
         },
-        options: commonOptions
+        options: {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            tooltip: {
+              callbacks: {
+                title: (items) => items.length ? eventSummaries[items[0].dataIndex].name : "",
+                footer: (items) => items.length
+                  ? `${eventSummaries[items[0].dataIndex].matchCount} scored qualification ${
+                    eventSummaries[items[0].dataIndex].matchCount === 1 ? "match" : "matches"
+                  }`
+                  : ""
+              }
+            }
+          },
+          scales: {
+            x: {
+              ...commonOptions.scales.x,
+              offset: true,
+              title: { display: true, text: "Events with scored matches" }
+            },
+            y: {
+              ...commonOptions.scales.y,
+              title: { display: true, text: "Average alliance points" }
+            }
+          }
+        }
       });
     }
   }
 
   async function computeTeamStats(teamNumber, events) {
     if (!events) events = await loadTeamEvents(teamNumber);
-    const peoriaStats = createStats();
+    const leagueStats = createStats();
     const stateStats = createStats();
     const allMatches = [];
     const rawMatchRecords = [];
@@ -421,14 +459,14 @@
       const eventRank = event.rank;
       const eventName = event.name || "";
       const eventIsState = isStateEvent(eventName);
-      const eventIsPeoria = isPeoriaEvent(eventName);
+      const eventIsLeague = isLeagueEvent(event);
 
       if (eventIsState && eventRank !== null) {
         stateStats.rank = eventRank;
       }
 
-      if (eventIsPeoria && eventRank !== null) {
-        peoriaStats.rank = eventRank;
+      if (eventIsLeague && eventRank !== null) {
+        leagueStats.rank = eventRank;
       }
 
       const qualificationMatches = matches
@@ -461,10 +499,10 @@
             if (win) stateStats.wins++;
             else if (tie) stateStats.ties++;
             else stateStats.losses++;
-          } else if (eventIsPeoria) {
-            if (win) peoriaStats.wins++;
-            else if (tie) peoriaStats.ties++;
-            else peoriaStats.losses++;
+          } else if (eventIsLeague) {
+            if (win) leagueStats.wins++;
+            else if (tie) leagueStats.ties++;
+            else leagueStats.losses++;
           }
 
           const matchRecord = {
@@ -506,6 +544,7 @@
         eventChartSummaries.push({
           name: event.name,
           shortName: shortEventName(event.name),
+          matchCount: qualificationMatches.length,
           avgScore: average(qualificationMatches.map((m) => m.myScore))
         });
       }
@@ -527,17 +566,17 @@
       bestScoreMatch,
       winRate: round(winRate, 1),
       avgAuto: round(avgAuto, 1),
-      peoriaRecord: `${peoriaStats.wins}-${peoriaStats.losses}-${peoriaStats.ties}`,
+      leagueRecord: `${leagueStats.wins}-${leagueStats.losses}-${leagueStats.ties}`,
       stateRecord: `${stateStats.wins}-${stateStats.losses}-${stateStats.ties}`,
-      peoriaWins: peoriaStats.wins,
-      peoriaTotal: peoriaStats.wins + peoriaStats.losses + peoriaStats.ties,
+      leagueWins: leagueStats.wins,
+      leagueTotal: leagueStats.wins + leagueStats.losses + leagueStats.ties,
       stateWins: stateStats.wins,
       stateTotal: stateStats.wins + stateStats.losses + stateStats.ties,
       totalMatches,
       allMatches,
       rawMatches: rawMatchRecords,
       eventChartSummaries,
-      peoriaStats,
+      leagueStats,
       stateStats
     };
   }
@@ -552,7 +591,7 @@
       const stats = await computeTeamStats(FTC_CONFIG.team, events);
       ourCachedStats = stats;
 
-      setText("peoria-rank", stats.peoriaStats.rank !== null ? `#${stats.peoriaStats.rank}` : "N/A");
+      setText("league-rank", stats.leagueStats.rank !== null ? `#${stats.leagueStats.rank}` : "N/A");
       setText("state-rank", stats.stateStats.rank !== null ? `#${stats.stateStats.rank}` : "N/A");
 
       setText("avg-score", stats.totalMatches ? `${stats.avgScore}` : "N/A");
@@ -569,7 +608,7 @@
       );
 
       setText("avg-auto", stats.totalMatches ? `${stats.avgAuto}` : "N/A");
-      setText("peoria-record", stats.peoriaRecord);
+      setText("league-record", stats.leagueRecord);
       setText("state-record", stats.stateRecord);
 
       renderCharts(stats.allMatches, stats.eventChartSummaries);
@@ -588,7 +627,7 @@
       }
 
       [
-        "peoria-rank",
+        "league-rank",
         "state-rank",
         "avg-score",
         "avg-score-card",
@@ -596,7 +635,7 @@
         "win-rate-card",
         "best-score",
         "avg-auto",
-        "peoria-record",
+        "league-record",
         "state-record"
       ].forEach((id) => setText(id, "--"));
     }

@@ -51,7 +51,7 @@ function loadStatistics(responses, date = "2026-11-01T19:00:00Z") {
   };
   vm.createContext(context);
   vm.runInContext(source.replace(/\}\)\(\);\s*$/, `
-    globalThis.statistics = { computeTeamStats, fetchTelemetry, renderSchedule, season: FTC_CONFIG.season };
+    globalThis.statistics = { computeTeamStats, fetchTelemetry, renderSchedule, renderCharts, season: FTC_CONFIG.season };
   })();`), context);
   return { ...context.statistics, requests, elements };
 }
@@ -82,6 +82,7 @@ function eventResponses(matches, season = 2026) {
       data: {
         code: "ILPE1",
         name: "Peoria Meet 1",
+        type: "LeagueMeet",
         start: `${season}-10-31`,
         end: `${season}-10-31`,
         remote: false
@@ -120,8 +121,8 @@ test("loads current-season results for the homepage and comparison teams", async
   await stats.fetchTelemetry();
   assert.equal(stats.elements.get("avg-score-card").textContent, "100");
   assert.equal(stats.elements.get("win-rate-card").textContent, "100%");
-  assert.equal(stats.elements.get("peoria-record").textContent, "1-0-0");
-  assert.equal(stats.elements.get("peoria-rank").textContent, "#2");
+  assert.equal(stats.elements.get("league-record").textContent, "1-0-0");
+  assert.equal(stats.elements.get("league-rank").textContent, "#2");
   assert.equal(stats.elements.get("stats-status").textContent, "");
 
   const comparison = await stats.computeTeamStats(12345);
@@ -207,7 +208,7 @@ test("uses the latest event rank and includes zero-score ties", async () => {
   const responses = eventResponses([scoredMatch()]);
   responses["/rest/v1/teams/21592/events/2026"].data.push({ eventCode: "ILPE2", stats: { rank: 1 } });
   responses["/rest/v1/events/2026/ILPE2"] = {
-    data: { code: "ILPE2", name: "Peoria Meet 2", start: "2026-11-01", end: "2026-11-01" }
+    data: { code: "ILPE2", name: "Peoria Meet 2", type: "LeagueMeet", start: "2026-11-01", end: "2026-11-01" }
   };
   responses["/rest/v1/events/2026/ILPE2/matches"] = {
     data: [scoredMatch({
@@ -215,11 +216,91 @@ test("uses the latest event rank and includes zero-score ties", async () => {
     })]
   };
   const stats = await loadStatistics(responses).computeTeamStats(21592);
-  assert.equal(stats.peoriaStats.rank, 1);
-  assert.equal(stats.peoriaRecord, "1-0-1");
+  assert.equal(stats.leagueStats.rank, 1);
+  assert.equal(stats.leagueRecord, "1-0-1");
   assert.equal(stats.avgScore, 50);
   assert.equal(stats.winRate, 50);
   assert.equal(stats.eventChartSummaries.length, 2);
+});
+
+test("uses league event types instead of hardcoded names for ranks and records", async () => {
+  for (const [name, type] of [
+    ["Peoria Meet 1", "LeagueMeet"],
+    ["IL Peoria Western League Meet 1", "LeagueMeet"],
+    ["Central Meet 1", "LeagueMeet"],
+    ["Central League Tournament", "LeagueTournament"]
+  ]) {
+    const responses = eventResponses([scoredMatch()]);
+    responses["/rest/v1/events/2026/ILPE1"].data.name = name;
+    responses["/rest/v1/events/2026/ILPE1"].data.type = type;
+    const stats = await loadStatistics(responses).computeTeamStats(21592);
+    assert.equal(stats.leagueStats.rank, 2, name);
+    assert.equal(stats.leagueRecord, "1-0-0", name);
+    assert.equal(stats.allMatches[0].chartLabel, `${name} Q1`, name);
+    assert.equal(stats.eventChartSummaries[0].shortName, name, name);
+  }
+});
+
+test("does not classify non-league events as league meets even with Peoria names", async () => {
+  for (const type of ["Qualifier", "Scrimmage", "Championship"]) {
+    const responses = eventResponses([scoredMatch()]);
+    responses["/rest/v1/events/2026/ILPE1"].data.type = type;
+    const stats = await loadStatistics(responses).computeTeamStats(21592);
+    assert.equal(stats.leagueStats.rank, null, type);
+    assert.equal(stats.leagueRecord, "0-0-0", type);
+    assert.equal(stats.totalMatches, 1, type);
+  }
+});
+
+test("matches the five-score screenshot average and keeps actual qualification numbers", async () => {
+  const values = [[3, 66], [7, 73], [9, 78], [16, 79], [18, 130]];
+  const responses = eventResponses(values.map(([id, totalPoints], index) => scoredMatch({
+    id,
+    scores: {
+      red: { totalPoints, autoPoints: 0 },
+      blue: { totalPoints: index === 0 ? totalPoints + 1 : totalPoints - 1, autoPoints: 0 }
+    }
+  })).reverse());
+  responses["/rest/v1/events/2026/ILPE1"].data.name = "Central Meet 1";
+  const stats = await loadStatistics(responses).computeTeamStats(21592);
+  assert.equal(stats.avgScore, 85.2);
+  assert.equal(stats.winRate, 80);
+  assert.equal(stats.leagueRecord, "4-1-0");
+  assert.equal(stats.eventChartSummaries.length, 1);
+  assert.equal(stats.eventChartSummaries[0].matchCount, 5);
+  assert.deepEqual(Array.from(stats.allMatches, match => match.label), ["Q3", "Q7", "Q9", "Q16", "Q18"]);
+});
+
+test("chart options center a single event bar and show exact scores and full tooltip names", async () => {
+  const responses = eventResponses([scoredMatch()]);
+  responses["/rest/v1/events/2026/ILPE1"].data.name = "Central Meet 1";
+  const charts = [];
+  const stats = loadStatistics(responses);
+  const context = vm.createContext({
+    document: { addEventListener() {}, getElementById: id => ({ id }) },
+    Date,
+    window: {},
+    Chart: class {
+      constructor(canvas, config) { charts.push({ canvas, config }); }
+      destroy() {}
+    }
+  });
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, `
+    globalThis.renderCharts = renderCharts;
+  })();`), context);
+  const result = await stats.computeTeamStats(21592);
+  context.renderCharts(result.allMatches, result.eventChartSummaries);
+  const line = charts[0].config;
+  const bar = charts[1].config;
+  assert.equal(line.data.datasets[0].tension, 0);
+  assert.equal(line.data.datasets[0].label, "Alliance Total Score");
+  assert.deepEqual(Array.from(line.data.labels), ["Q1"]);
+  assert.equal(line.options.plugins.tooltip.callbacks.title([{ dataIndex: 0 }]), "Central Meet 1 Q1");
+  assert.equal(bar.options.scales.x.offset, true);
+  assert.equal(bar.data.datasets[0].maxBarThickness, 100);
+  assert.equal(bar.options.plugins.tooltip.callbacks.title([{ dataIndex: 0 }]), "Central Meet 1");
+  assert.equal(bar.options.plugins.tooltip.callbacks.footer([{ dataIndex: 0 }]), "1 scored qualification match");
+  assert.equal(bar.data.datasets[0].data[0], result.avgScore);
 });
 
 test("reports invalid API response shapes and missing scores explicitly", async () => {
